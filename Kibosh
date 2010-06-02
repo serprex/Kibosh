@@ -3,9 +3,9 @@ from __future__ import division
 import pyglet
 from pyglet.gl import *
 from socket import *
-from math import *
+from math import sin,cos
 from select import select
-from random import random
+from itertools import count
 try:
 	range=xrange
 	from itertools import imap as map,izip as zip,ifilter as filter
@@ -13,6 +13,8 @@ except:pass
 globals().update((lambda a,b:(a,(int(b) if b.isdigit() else b)))(*a.split()) for a in open("Kibosh."))
 socket.check=lambda s,x=0:select((s,),(),(),x)[0]
 tcp=socket(AF_INET,SOCK_STREAM)
+tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
+tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
 if len(__import__("sys").argv)==2:
 	tcp.bind(("",port))
 	tcp.listen(1)
@@ -21,10 +23,11 @@ if len(__import__("sys").argv)==2:
 else:
 	tcp.connect((host,port))
 	blue=not ord(tcp.recv(1))
-tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
 pyglet.clock.set_fps_limit(30)
 W=pyglet.window.Window(width=320,height=512)
 W.set_location(100+600*blue,100)
+glEnable(GL_BLEND)
+glBlendFunc(GL_SRC_ALPHA,GL_ONE)
 awds=[0,0,0,0]
 awds2=[0,0,0,0]
 if blue:
@@ -33,7 +36,10 @@ if blue:
 else:
 	X1,Y1=240,320
 	X2,Y2=80,160
-T=0
+X0=Y0=Z0=.5
+E1=E2=T=0
+B=[]
+def Bxyd(p,x,y,d,v):B+=[p,x,y,sin(d)*v,cos(d)*v],
 @W.event
 def on_key_press(k,m):
 	if 65360<k<65365:awds[k-65361]=1
@@ -42,47 +48,93 @@ def on_key_press(k,m):
 def on_key_release(k,m):
 	if 65360<k<65365:awds[k-65361]=0
 while not W.has_exit:
-	pyglet.clock.tick()
 	W.dispatch_events()
-	T+=1
-	if not T&31:
-		tcp.send("%c%c%c"%(X1>>8|Y1>>8<<1,X1&255,Y1&255))
-	elif not T&3:
-		tcp.send(chr(128|awds[0]|awds[1]<<1|awds[2]<<2|awds[3]<<3))
-	X1+=awds[2]-awds[0]<<2
+	if not T&31:tcp.send("%c%c%c"%(X1>>8|Y1>>8<<1,X1&255,Y1&255))
+	elif not T&3:tcp.send(chr(0xF0|awds[0]|awds[1]<<1|awds[2]<<2|awds[3]<<3))
+	if awds[2]-awds[0] and awds[1]-awds[3]:
+		X1+=(awds[2]-awds[0]<<2)*3>>2
+		Y1+=(awds[1]-awds[3]<<2)*3>>2
+	else:
+		X1+=awds[2]-awds[0]<<2
+		Y1+=awds[1]-awds[3]<<2
 	if X1<0:X1=0
-	if X1>320:X1=320
-	Y1+=awds[1]-awds[3]<<2
+	elif X1>320:X1=320
 	if Y1<0:Y1=0
-	if Y1>511:Y1=511
-	X2+=awds2[2]-awds2[0]<<2
-	if X2<0:X2=0
-	if X2>320:X2=320
-	Y2+=awds2[1]-awds2[3]<<2
-	if Y2<0:Y2=0
-	if Y2>511:Y2=511
+	elif Y1>511:Y1=511
 	if tcp.check():
 		r=ord(tcp.recv(1))
-		if not r&0xF0:
+		if r&0xF0==0xF0:
+			awds2=[r&1,r>>1&1,r>>2&1,r>>3&1]
+		elif not r&0xFB:
 			X2=ord(tcp.recv(1))|(r&1)<<8
 			Y2=ord(tcp.recv(1))|(r&2)<<7
-		elif r&0xF0==0x80:
-			awds2=[r&1,r>>1&1,r>>2&1,r>>3&1]
-		elif r==127:exit(tcp.close())
-	glColor3f(not blue,0,blue)
+		elif r&0xF0==0x40:
+			E2+=1
+			c=r&7|ord(recv(1))<<3
+			for a,b in enumerate(B):
+				if b[5]==c:
+					del B[a]
+					break
+		elif r==127:exit()
+	if awds2[2]-awds2[0] and awds2[1]-awds2[3]:
+		X2+=(awds2[2]-awds2[0]<<2)*3>>2
+		Y2+=(awds2[1]-awds2[3]<<2)*3>>2
+	else:
+		X2+=awds2[2]-awds2[0]<<2
+		Y2+=awds2[1]-awds2[3]<<2
+	if X2<0:X2=0
+	elif X2>320:X2=320
+	if Y2<0:Y2=0
+	elif Y2>511:Y2=511
+	Z0+=(Y1-Y2)/((X1-X2)**2+(Y1-Y2)**2)**.5
+	if Z0<0.:Z0=0.
+	elif Z0>1.:Z0=1.
+	X0=X1+(X2-X1)*Z0
+	Y0=Y1+(Y2-Y1)*Z0
+	glBegin(GL_QUADS)
+	for a,b in zip(count(1),reversed(B)):
+		glColor3f(b[0]==1,b[0]==2,b[0]==0)
+		glVertex2f(b[1]+3,b[2])
+		glVertex2f(b[1],b[2]+3)
+		glVertex2f(b[1]-3,b[2])
+		glVertex2f(b[1],b[2]-3)
+		b[1]+=b[3]
+		b[2]+=b[4]
+		glVertex2f(b[1]+6,b[2])
+		glVertex2f(b[1],b[2]+6)
+		glVertex2f(b[1]-6,b[2])
+		glVertex2f(b[1],b[2]-6)
+		if -12<b[0]-X0<12 or -12<b[1]-Y0<12:
+			if Z0:"hit"
+			else:
+				tcp.send("%c%c"%(0x40|b[5]&7,b[5]>>3))
+				del B[-a]
+				E1+=1
+	glColor3f(not blue,0.,blue)
 	glBegin(GL_TRIANGLE_FAN)
 	glVertex2i(X1,Y1)
 	for a in range(7):
 		glVertex2f(X1+cos(a*pi/3+T)*24,Y1+sin(a*pi/3+T)*24)
 	glEnd()
-	glColor3f(blue,0,not blue)
+	glBegin(GL_LINES)
+	glVertex2i(X1,Y1)
+	glColor3f(blue,0.,not blue)
+	glVertex2i(X2,Y2)
+	glEnd()
 	glBegin(GL_TRIANGLE_FAN)
 	glVertex2i(X2,Y2)
 	for a in range(7):
 		glVertex2f(X2+cos(a*pi/3-T)*24,Y2+sin(a*pi/3-T)*24)
 	glEnd()
+	glColor3f(1.,1.,1.)
+	glBegin(GL_TRIANGLE_FAN)
+	glVertex2f(X0,Y0)
+	glColor4f(0.,0.,0.,0.)
+	for a in range(7):
+		glVertex2f(X0+cos(a*pi/3-T)*24,Y0+sin(a*pi/3+T)*24)
+	glEnd()
 	W.flip()
 	glClear(GL_COLOR_BUFFER_BIT)
+	T+=1
+	pyglet.clock.tick()
 tcp.send("\x7F")
-tcp.recv(1)
-tcp.close()
