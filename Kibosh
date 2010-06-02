@@ -26,18 +26,47 @@ else:
 	tcp.connect((host,port))
 	blue=not ord(tcp.recv(1))
 pyglet.clock.set_fps_limit(30)
-W=pyglet.window.Window(width=320,height=512)
+W=pyglet.window.Window(width=320,height=600)
 W.set_location(100+600*blue,100)
 glEnable(GL_BLEND)
 glBlendFunc(GL_SRC_ALPHA,GL_ONE)
-awds=[0,0,0,0]
-awds2=0,0,0,0
+class Node:
+	def __init__(s,x,y,b):
+		s.x=x
+		s.y=y
+		s.b=b
+		s.awds=[0,0,0,0]
+	def move(s):
+		if hit:return
+		if s.awds[2]-s.awds[0] and s.awds[1]-s.awds[3]:
+			s.x+=(s.awds[2]-s.awds[0]<<2)*3>>2
+			s.y+=(s.awds[1]-s.awds[3]<<2)*3>>2
+		else:
+			s.x+=s.awds[2]-s.awds[0]<<2
+			s.y+=s.awds[1]-s.awds[3]<<2
+		if s.x<0:s.x=0
+		elif s.x>320:s.x=320
+		if s.y<0:s.y=0
+		elif s.y>511:s.y=511
+	def draw(s):
+		glBegin(GL_TRIANGLE_FAN)
+		glColor3f(0.,0.,0.)
+		glVertex2i(s.x,s.y)
+		glColor3f(not s.b,0.,s.b)
+		for a in range(7):
+			glVertex2f(s.x+cos(a*pi/3+T)*24.,s.y+sin(a*pi/3+T)*24.)
+		glEnd()
+	def hit(s):
+		s.x-=cmp(s.x,160)<<4
+		s.y-=cmp(s.y,256)<<4
+		if -24<s.x-160<24:s.x=160
+		if -24<s.y-256<24:s.y=256
 if blue:
-	X1,Y1=80,160
-	X2,Y2=240,320
+	N1=Node(80,160,1)
+	N2=Node(240,320,0)
 else:
-	X1,Y1=240,320
-	X2,Y2=80,160
+	N1=Node(240,320,0)
+	N2=Node(80,160,1)
 X0=Y0=Z0=.5
 hit=E1=E2=T=0
 life=3
@@ -47,43 +76,30 @@ def Bxyd(p,x,y,d,v):
 	global B
 	B+=[p,x,y,sin(d)*v,cos(d)*v,nbid()&1023],
 def miss():
-	global hit,awds2,life
+	global hit,life
 	if not life:"dead"
 	hit=1
-	awds2=0,0,0,0
 	life-=1
 @W.event
 def on_key_press(k,m):
 	if 65360<k<65365:
-		awds[k-65361]=1
-		tcp.send(chr(0xF0|awds[0]|awds[1]<<1|awds[2]<<2|awds[3]<<3))
+		N1.awds[k-65361]=1
+		tcp.send("%c%c%c"%(0xF0|N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3,N1.x>>1,N1.y>>1))
 	elif k=="Z":"shoot"
 @W.event
 def on_key_release(k,m):
 	if 65360<k<65365:
-		awds[k-65361]=0
-		tcp.send(chr(0xF0|awds[0]|awds[1]<<1|awds[2]<<2|awds[3]<<3)+("" if any(awds) else "%c%c%c"%(X1>>8|Y1>>8<<1,X1&255,Y1&255)))
+		N1.awds[k-65361]=0
+		tcp.send("%c%c%c"%(0xF0|N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3,N1.x>>1,N1.y>>1))
 while not W.has_exit:
 	W.dispatch_events()
-	if hit:awds=[0,0,0,0]
-	if not T&31:tcp.send("%c%c%c"%(X1>>8|Y1>>8<<1,X1&255,Y1&255))
-	if awds[2]-awds[0] and awds[1]-awds[3]:
-		X1+=(awds[2]-awds[0]<<2)*3>>2
-		Y1+=(awds[1]-awds[3]<<2)*3>>2
-	else:
-		X1+=awds[2]-awds[0]<<2
-		Y1+=awds[1]-awds[3]<<2
-	if X1<0:X1=0
-	elif X1>320:X1=320
-	if Y1<0:Y1=0
-	elif Y1>511:Y1=511
+	N1.move()
 	while tcp.check():
 		r=ord(tcp.recv(1))
 		if r&0xF0==0xF0:
-			if not hit:awds2=r&1,r>>1&1,r>>2&1,r>>3&1
-		elif not r&0xFC:
-			X2=ord(tcp.recv(1))|(r&1)<<8
-			Y2=ord(tcp.recv(1))|(r&2)<<7
+			N2.awds=r&1,r>>1&1,r>>2&1,r>>3&1
+			N2.x=ord(tcp.recv(1))<<1
+			N2.y=ord(tcp.recv(1))<<1
 		elif r&0xF0==0x40:
 			E2+=1
 			c=r&7|ord(tcp.recv(1))<<3
@@ -93,35 +109,20 @@ while not W.has_exit:
 					break
 		elif r==0xE0:miss()
 		elif r==0xEF:exit()
-	if awds2[2]-awds2[0] and awds2[1]-awds2[3]:
-		X2+=(awds2[2]-awds2[0]<<2)*3>>2
-		Y2+=(awds2[1]-awds2[3]<<2)*3>>2
-	else:
-		X2+=awds2[2]-awds2[0]<<2
-		Y2+=awds2[1]-awds2[3]<<2
-	if X2<0:X2=0
-	elif X2>320:X2=320
-	if Y2<0:Y2=0
-	elif Y2>511:Y2=511
-	Z0+=(Y1-Y2)/((X1-X2)**2+(Y1-Y2)**2+1)**.5
+	N2.move()
+	Z0+=(N1.y-N2.y)/((N1.x-N2.x)**2+(N1.y-N2.y)**2+1)**.5
 	if Z0<0.:Z0=0.
 	elif Z0>1.:Z0=1.
-	X0=X1+(X2-X1)*Z0
-	Y0=Y1+(Y2-Y1)*Z0
+	X0=N1.x+(N2.x-N1.x)*Z0
+	Y0=N1.y+(N2.y-N1.y)*Z0
 	if hit:
-		X1-=cmp(X1,160)<<4
-		Y1-=cmp(Y1,256)<<4
-		X2-=cmp(X2,160)<<4
-		Y2-=cmp(Y2,256)<<4
-		if -24<X1-160<24:X1=160
-		if -24<Y1-256<24:Y1=256
-		if -24<X2-160<24:X2=160
-		if -24<Y2-256<24:Y2=256
-		if 256==Y1==Y2 and 160==X1==X2:hit=0
+		N1.hit()
+		N2.hit()
+		hit=not(256==N1.y==N2.y and 160==N1.x==N2.x)
 		B=[]
 	glBegin(GL_QUADS)
 	for a,b in zip(count(1),reversed(B)):
-		glColor3f(b[0]==1,b[0]==2,not b[0])
+		glColor3f(not b[0],b[0]==2,b[0]==1)
 		glVertex2f(b[1]+3,b[2])
 		glVertex2f(b[1],b[2]+3)
 		glVertex2f(b[1]-3,b[2])
@@ -141,25 +142,13 @@ while not W.has_exit:
 				del B[-a]
 				E1+=1
 	glEnd()
-	glBegin(GL_TRIANGLE_FAN)
-	glColor3f(0.,0.,0.)
-	glVertex2i(X1,Y1)
-	glColor3f(not blue,0.,blue)
-	for a in range(7):
-		glVertex2f(X1+cos(a*pi/3+T)*24.,Y1+sin(a*pi/3+T)*24.)
-	glEnd()
+	N1.draw()
 	glBegin(GL_LINES)
-	glVertex2i(X1,Y1)
+	glVertex2i(N1.x,N1.y)
 	glColor3f(blue,0.,not blue)
-	glVertex2i(X2,Y2)
+	glVertex2i(N2.x,N2.y)
 	glEnd()
-	glBegin(GL_TRIANGLE_FAN)
-	glColor3f(0.,0.,0.)
-	glVertex2i(X2,Y2)
-	glColor3f(blue,0.,not blue)
-	for a in range(7):
-		glVertex2f(X2+cos(a*pi/3-T)*24.,Y2+sin(a*pi/3-T)*24.)
-	glEnd()
+	N2.draw()
 	glColor3f(1.,1.,1.)
 	glBegin(GL_TRIANGLE_FAN)
 	glVertex2f(X0,Y0)
