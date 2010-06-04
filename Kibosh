@@ -22,13 +22,15 @@ tcp=socket(AF_INET,SOCK_STREAM)
 tcp.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
 blue=getrandbits(1)
 hopo="",2000
+L="Kikiki"
 for a in chain(open("K.txt").readlines(),argv[1:]):
-	if a.startswith("#"):continue
-	elif a=="b":blue=1
-	elif a=="r":blue=0
+	if not a or a[0]=="#":continue
 	elif ":" in a:hopo=(a[:a.find(":")] or hopo[0] if a.find("::")==-1 else ""),int(a[a.rfind(":")+1:] or hopo[1])
 	elif "." in a:hopo=a,hopo[1]
 	elif a.isdigit():hopo=hopo[0],int(a)
+	elif a[0] in "br":blue=a[0]=="b"
+	elif a[0]=="H":H=int(a[1:])
+	elif a[0]=="L":L=a[1:]
 if hopo[0]:
 	tcp.connect(hopo)
 	blue=tcp.recv(1)=="\0"
@@ -50,7 +52,7 @@ tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
 recv=tcp.recv
 send=tcp.send
 pyglet.clock.set_fps_limit(30)
-W=pyglet.window.Window(width=320,height=512)
+W=pyglet.window.Window(320,512)
 W.set_location(200+400*blue,100)
 glEnable(GL_BLEND)
 glBlendFunc(GL_SRC_ALPHA,GL_ONE)
@@ -78,8 +80,8 @@ class Cannon:
 		s.p=p
 		s.x=x
 		s.y=y
-		s.v=sin(d)*v
 		s.h=cos(d)*v
+		s.v=sin(d)*v
 		s.t=t
 		s.d=d if D is None else D
 	def __call__(s):
@@ -88,7 +90,7 @@ class Cannon:
 		s.d+=ptdir(s.d,atan2(Y0-s.y,X0-s.x),pi19)
 		if not (-32<s.x<352 and -32<s.y<544):return s.die()
 		for a in NN:
-			if (a.x-s.x)**2+(a.y-s.y)**2<256:return s.die()
+			if (a.x-s.x)**2+(a.y-s.y)**2<400:return s.die()
 		if not T%s.t:Bul(s.p,s.x,s.y,s.d,s.v*2)
 		glColor3fv(RGB[s.p])
 		for a in GL_QUADS,GL_LINE_LOOP:
@@ -111,8 +113,8 @@ class Gattle:
 		s.p=p
 		s.x=x
 		s.y=y
-		s.v=sin(d)*v
 		s.h=cos(d)*v
+		s.v=sin(d)*v
 		s.t=t
 		s.d=0
 	def __call__(s):
@@ -151,8 +153,10 @@ class F:
 		s.f=getnext(count())
 	def __call__(s,x):
 		s.F[s.f()&1023]=x
-	def __del__(s,x):
-		del s.F[x]
+	def __delitem__(s,x):
+		if x in s.F:del s.F[x]
+	def __iter__(s):return iter(s.F)
+	def __getitem__(s,x):return s.F[x]
 F=F()
 def flost(x):return dumps(x)[1:] if x.__class__ is float else loads("g"+x)
 def ptdir(x,y,m):
@@ -180,8 +184,11 @@ def on_key(k,o):
 	elif k==65307:W.has_exit=1
 W.on_key_press=lambda k,m:on_key(k,1)
 W.on_key_release=lambda k,m:on_key(k,0)
-F(Cannon(1,100,400,pi32,2,16))
-F(Gattle(0,200,400,pi32,2,16))
+L=__import__(L)
+L.G.update(globals())
+Time=L.Time
+#F(Cannon(1,100,400,pi32,2,16))
+#F(Gattle(0,200,400,pi32,2,16))
 while not W.has_exit:
 	W.dispatch_events()
 	if pause:
@@ -195,6 +202,7 @@ while not W.has_exit:
 			elif r==0xEF:exit()
 			else:raise Exception("%x %s"%(r,recv(64)))
 	else:
+		if T in Time:Time[T]()
 		N1.move()
 		while select((tcp,),(),(),0)[0]:
 			r=ord(recv(1))
@@ -245,7 +253,7 @@ while not W.has_exit:
 			glVertex2f(b[1],b[2]+4.)
 			glVertex2f(b[1]-4.,b[2])
 			glVertex2f(b[1],b[2]-4.)
-			if (b[1]-X0)**2+(b[2]-Y0)**2<81:
+			if (b[1]-X0)**2+(b[2]-Y0)**2<256:
 				if Z0<.9 and (Z0 or b[0]!=blue):
 					send("\xEE")
 					miss()
