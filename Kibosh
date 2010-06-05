@@ -57,7 +57,9 @@ W=pyglet.window.Window(320,512)
 W.set_location(200+400*blue,50)
 glEnable(GL_BLEND)
 GLF3=GLfloat*3
+GLF4=GLfloat*4
 Red,Blu,Gre,Wht,Blk=RGB=GLF3(1.,0.,0.),GLF3(0.,0.,1.),GLF3(0.,1.,0.),GLF3(1.,1.,1.),GLF3(0.,0.,0.)
+def glColorafv(c,a):glColor4f(c[0],c[1],c[2],a)
 class Node:
 	def __init__(s,*x):
 		s.x,s.y,s.p=x
@@ -74,7 +76,7 @@ class Node:
 			elif s.x>320:s.x=320
 			if s.y<0:s.y=0
 			elif s.y>511:s.y=511
-def near(x,y):return min(chain((((a.x-x)**2+(a.y-y)**2,a.p) for a in NN),((((a[2][-1][0]-x)**2+(a[2][-1][1]-y)**2,a[1]) for a in N))))
+def near(x,y):return min(chain((((a.x-x)**2+(a.y-y)**2,a.p) for a in NN),((((a[1][-1][0]-x)**2+(a[1][-1][1]-y)**2,None) for a in N))))
 class Cannon:
 	die=lambda s:1
 	def __init__(s,p,x,y,d,v,t,D=None):
@@ -92,7 +94,7 @@ class Cannon:
 		if not (-32<s.x<352 and -32<s.y<544):return s.die()
 		a=near(s.x,s.y)
 		if a[0]<400:
-			if a[1]==s.p:Nut(s.p,s.x,s.y)
+			if a[1]==s.p:Nut(s.x,s.y)
 			return s.die()
 		if not T%s.t:Bul(s.p,s.x,s.y,s.d,3)
 		glColor3fv(RGB[s.p])
@@ -110,6 +112,26 @@ class Cannon:
 			glVertex2f(s.x,s.y)
 			glVertex2f(s.x+24*cos(s.d-pi16),s.y+24*sin(s.d-pi16))
 			glVertex2f(s.x+24*cos(s.d+pi16),s.y+24*sin(s.d+pi16))
+			glEnd()
+			glColor3fv(Wht)
+class CannonCannon:
+	die=lambda s:1
+	def __init__(s,x):
+		s.x=x
+		s.y=-99
+	def __call__(s):
+		s.y+=s.y<99
+		a=near(s.x,s.y)
+		if a[0]<999 and a[1]==None:
+			s.p*=-1
+		if not T&31:F(Cannon(s.p,s.x,s.y,pi32,4))
+		glColorafv(RGB[s.p],s.y/100)
+		for a in GL_QUADS,GL_LINE_LOOP:
+			glBegin(a)
+			glVertex2f(s.x+96*cos(T),s.y+96*sin(T))
+			glVertex2f(s.x+96*cos(T+pi12),s.y+96*sin(T+pi12))
+			glVertex2f(s.x+96*cos(T+pi),s.y+96*sin(T+pi))
+			glVertex2f(s.x+96*cos(T+pi32),s.y+96*sin(T+pi32))
 			glEnd()
 			glColor3fv(Wht)
 class Gattle:
@@ -163,6 +185,7 @@ class F:
 		s.f=getnext(count())
 	def __call__(s,x):
 		s.F[s.f()&1023]=x
+		return x
 	def __delitem__(s,x):
 		if x in s.F:del s.F[x]
 F=F()
@@ -175,9 +198,9 @@ def ptdir(x,y,m):
 def Bul(p,x,y,d,v):
 	global B
 	B+=[p,x,y,cos(d)*v,sin(d)*v],
-def Nut(p,x,y):
+def Nut(x,y):
 	global N
-	N+=[pi12,p,[(x,y)]],
+	N+=[pi12,[(x,y)]],
 def miss():
 	global hit,life
 	if not hit:
@@ -267,24 +290,24 @@ while not W.has_exit:
 			b=36544
 			s=None
 			for c in F:
-				d=(F[c].x-a[2][-1][0])**2+(F[c].y-a[2][-1][1])**2
+				d=(F[c].x-a[1][-1][0])**2+(F[c].y-a[1][-1][1])**2
 				if d<b:
 					s=F[c]
 					b=d
-			if s:a[0]+=ptdir(a[0],atan2(s.y-a[2][-1][1],s.x-a[2][-1][0]),pi18)
+			if s:a[0]+=ptdir(a[0],atan2(s.y-a[1][-1][1],s.x-a[1][-1][0]),pi18)
 			if len(a)==3:
-				a[2]+=(a[2][-1][0]+cos(a[0])*12.,a[2][-1][1]+sin(a[0])*12.),
-				if len(a[2])==64:a+=None,
+				a[1]+=(a[1][-1][0]+cos(a[0])*12.,a[1][-1][1]+sin(a[0])*12.),
+				if len(a[1])==64:a+=None,
 			else:
-				del a[2][0]
-				if not a[2]:r+=1
-			for b in a[2]:
+				del a[1][0]
+				if not a[1]:r+=1
+			for b in a[1]:
 				glVertex2f(b[0]-8+getrandbits(4),b[1]-8+getrandbits(4))
 				glVertex2f(b[0]-8+getrandbits(4),b[1]-8+getrandbits(4))
 				glVertex2f(b[0]-8+getrandbits(4),b[1]-8+getrandbits(4))
 		glEnd()
 		del N[:r]
-		glBlendFunc(GL_ONE,GL_ONE)
+		glBlendFunc(GL_ONE,GL_ZERO)
 		glBegin(GL_QUADS)
 		r=[]
 		for a,b in enumerate(B):

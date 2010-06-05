@@ -1,11 +1,13 @@
-v=15
 Time={}
 G=globals()
-for x in range(10):
+for v in range(15,600,45):
 	v+=45
-	Time[v]=lambda:F(Cannon(0,v/45,530,piC7,4,15))
-	Time[v+15]=lambda:F(Cannon(1,320-v/45,530,piC9,4,15))
+	Time[v]=lambda v=v:F(Cannon(0,v/45,530,piC7,4,15))
+	Time[v+15]=lambda v=v:F(Cannon(1,320-v/45,530,piC9,4,15))
 	Time[v+30]=lambda:F(Gattle(2,160,530,pi32,5,30))
+for v in range(401,601,20):
+	Time[v]=lambda v=v:F(Cannon(0,-8,v-500,0,5,20))
+	Time[v+1]=lambda v=v:F(Cannon(2,328,v-500,pi,5,15))
 """
 ds_grid_set(0,472,1,gchn)
 ds_grid_set(0,472,2,240)
