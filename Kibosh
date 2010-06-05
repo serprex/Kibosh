@@ -1,6 +1,7 @@
 #!/usr/bin/python
 from __future__ import division
 import pyglet
+pyglet.options["debug_gl"]=False
 from pyglet.gl import *
 from socket import *
 from math import *
@@ -53,9 +54,8 @@ recv=tcp.recv
 send=tcp.send
 pyglet.clock.set_fps_limit(30)
 W=pyglet.window.Window(320,512)
-W.set_location(200+400*blue,100)
+W.set_location(200+400*blue,50)
 glEnable(GL_BLEND)
-glBlendFunc(GL_SRC_ALPHA,GL_ONE)
 GLF3=GLfloat*3
 Red,Blu,Gre,Wht,Blk=RGB=GLF3(1.,0.,0.),GLF3(0.,0.,1.),GLF3(0.,1.,0.),GLF3(1.,1.,1.),GLF3(0.,0.,0.)
 class Node:
@@ -63,17 +63,18 @@ class Node:
 		s.x,s.y,s.p=x
 		s.awds=[0,0,0,0]
 	def move(s):
-		if hit:return
-		if s.awds[2]-s.awds[0] and s.awds[1]-s.awds[3]:
-			s.x+=(s.awds[2]-s.awds[0]<<2)*3>>2
-			s.y+=(s.awds[1]-s.awds[3]<<2)*3>>2
-		else:
-			s.x+=s.awds[2]-s.awds[0]<<2
-			s.y+=s.awds[1]-s.awds[3]<<2
-		if s.x<0:s.x=0
-		elif s.x>320:s.x=320
-		if s.y<0:s.y=0
-		elif s.y>511:s.y=511
+		if not hit:
+			if s.awds[2]-s.awds[0] and s.awds[1]-s.awds[3]:
+				s.x+=(s.awds[2]-s.awds[0]<<2)*3>>2
+				s.y+=(s.awds[1]-s.awds[3]<<2)*3>>2
+			else:
+				s.x+=s.awds[2]-s.awds[0]<<2
+				s.y+=s.awds[1]-s.awds[3]<<2
+			if s.x<0:s.x=0
+			elif s.x>320:s.x=320
+			if s.y<0:s.y=0
+			elif s.y>511:s.y=511
+def near(x,y):return min(chain((((a.x-x)**2+(a.y-y)**2,a.p) for a in NN),((((a[2][-1][0]-x)**2+(a[2][-1][1]-y)**2,a[1]) for a in N))))
 class Cannon:
 	die=lambda s:1
 	def __init__(s,p,x,y,d,v,t,D=None):
@@ -89,9 +90,11 @@ class Cannon:
 		s.y+=s.v
 		s.d+=ptdir(s.d,atan2(Y0-s.y,X0-s.x),pi19)
 		if not (-32<s.x<352 and -32<s.y<544):return s.die()
-		for a in NN:
-			if (a.x-s.x)**2+(a.y-s.y)**2<400:return s.die()
-		if not T%s.t:Bul(s.p,s.x,s.y,s.d,s.v*2)
+		a=near(s.x,s.y)
+		if a[0]<400:
+			if a[1]==s.p:Nut(s.p,s.x,s.y)
+			return s.die()
+		if not T%s.t:Bul(s.p,s.x,s.y,s.d,3)
 		glColor3fv(RGB[s.p])
 		for a in GL_QUADS,GL_LINE_LOOP:
 			glBegin(a)
@@ -102,11 +105,13 @@ class Cannon:
 			glEnd()
 			glColor3fv(Wht)
 		glColor3fv(RGB[s.p])
-		glBegin(GL_TRIANGLES)
-		glVertex2f(s.x,s.y)
-		glVertex2f(s.x+24*cos(s.d-pi16),s.y+24*sin(s.d-pi16))
-		glVertex2f(s.x+24*cos(s.d+pi16),s.y+24*sin(s.d+pi16))
-		glEnd()
+		for a in GL_TRIANGLES,GL_LINE_LOOP:
+			glBegin(a)
+			glVertex2f(s.x,s.y)
+			glVertex2f(s.x+24*cos(s.d-pi16),s.y+24*sin(s.d-pi16))
+			glVertex2f(s.x+24*cos(s.d+pi16),s.y+24*sin(s.d+pi16))
+			glEnd()
+			glColor3fv(Wht)
 class Gattle:
 	die=lambda s:1
 	def __init__(s,p,x,y,d,v,t):
@@ -120,14 +125,16 @@ class Gattle:
 	def __call__(s):
 		s.x+=s.h
 		s.y+=s.v
-		s.d+=pi19/10
+		s.d+=pi19/s.t
 		if not (-32<s.x<352 and -32<s.y<544):return s.die()
-		for a in NN:
-			if (a.x-s.x)**2+(a.y-s.y)**2<64:return s.die()
+		a=near(s.x,s.y)
+		if a[0]<400:
+			if a[1]==s.p:Nut(s.p,s.x,s.y)
+			return s.die()
 		if not T%s.t:
-			Bul(s.p,s.x,s.y,s.d,s.v*1.5)
-			Bul(s.p,s.x,s.y,s.d+pi23,s.v*1.5)
-			Bul(s.p,s.x,s.y,s.d-pi23,s.v*1.5)
+			Bul(s.p,s.x,s.y,s.d,4)
+			Bul(s.p,s.x,s.y,s.d+pi23,4)
+			Bul(s.p,s.x,s.y,s.d-pi23,4)
 		glColor3fv(RGB[s.p])
 		for a in GL_TRIANGLES,GL_LINE_LOOP:
 			glBegin(a)
@@ -147,16 +154,17 @@ X0=Y0=Z0=.5
 pause=hit=T=0
 life=3
 B=[]
+N=[]
 class F:
 	def __init__(s):
 		s.F={}
+		s.__iter__=s.F.__iter__
+		s.__getitem__=s.F.__getitem__
 		s.f=getnext(count())
 	def __call__(s,x):
 		s.F[s.f()&1023]=x
 	def __delitem__(s,x):
 		if x in s.F:del s.F[x]
-	def __iter__(s):return iter(s.F)
-	def __getitem__(s,x):return s.F[x]
 F=F()
 def flost(x):return dumps(x)[1:] if x.__class__ is float else loads("g"+x)
 def ptdir(x,y,m):
@@ -167,6 +175,9 @@ def ptdir(x,y,m):
 def Bul(p,x,y,d,v):
 	global B
 	B+=[p,x,y,cos(d)*v,sin(d)*v],
+def Nut(p,x,y):
+	global N
+	N+=[pi12,p,[(x,y)]],
 def miss():
 	global hit,life
 	if not hit:
@@ -178,17 +189,15 @@ def on_key(k,o):
 	if 65360<k<65365:
 		N1.awds[k-65361]=o
 		send("%c%c%c"%(0xF0|N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3,N1.x>>1,N1.y>>1))
-	elif k==112:
+	elif o and k==112:
 		pause=not pause
-		send("\xE0"+("%c%c%c%c%c"%(T&255,T>>8&255,T>>16&255,len(B)&255,len(B)>>8)+"".join("%c%c%c%s%s"%((b[2]&256>>6)|(b[1]&256>>7)|p,b[1]&255,b[2]&255,flost(b[3]),flost(b[4])) for b in B) if pause else ""))
+		send("\xE0"+("%c%c%c%c%c"%(T&255,T>>8&255,T>>16&255,len(B)&255,len(B)>>8)+"".join("%c%c%c%s%s"%((int(b[2])&256>>6)|(int(b[1])&256>>7)|b[0],int(b[1])&255,int(b[2])&255,flost(b[3]),flost(b[4])) for b in B) if pause else ""))
 	elif k==65307:W.has_exit=1
 W.on_key_press=lambda k,m:on_key(k,1)
 W.on_key_release=lambda k,m:on_key(k,0)
 L=__import__(L)
 L.G.update(globals())
 Time=L.Time
-#F(Cannon(1,100,400,pi32,2,16))
-#F(Gattle(0,200,400,pi32,2,16))
 while not W.has_exit:
 	W.dispatch_events()
 	if pause:
@@ -198,7 +207,10 @@ while not W.has_exit:
 				N2.awds=r&1,r>>1&1,r>>2&1,r>>3&1
 				N2.x=ord(recv(1))<<1
 				N2.y=ord(recv(1))<<1
-			elif r==0xE0:pause=0
+			elif r&0xF0==0xD0:recv(1)
+			elif r==0xE0:
+				pause=0
+				break
 			elif r==0xEF:exit()
 			else:raise Exception("%x %s"%(r,recv(64)))
 	else:
@@ -210,7 +222,7 @@ while not W.has_exit:
 				N2.awds=r&1,r>>1&1,r>>2&1,r>>3&1
 				N2.x=ord(recv(1))<<1
 				N2.y=ord(recv(1))<<1
-			elif r&0xD0==0xD0:del F[(r&15)|ord(recv(1))<<8]
+			elif r&0xF0==0xD0:del F[(r&15)|ord(recv(1))<<8]
 			elif r==0xE0:
 				pause=1
 				T=ord(recv(1))|ord(recv(1))<<8|ord(recv(1))<<16
@@ -233,39 +245,6 @@ while not W.has_exit:
 				if -24<s.y-256<24:s.y=256
 			hit=not(256==N1.y==N2.y and 160==N1.x==N2.x)
 			B=[]
-		r=[]
-		glDisable(GL_BLEND)
-		glBegin(GL_QUADS)
-		for a,b in enumerate(B):
-			glColor3fv(RGB[b[0]])
-			glVertex2f(b[1]+3.,b[2])
-			glVertex2f(b[1],b[2]+3.)
-			glVertex2f(b[1]-3.,b[2])
-			glVertex2f(b[1],b[2]-3.)
-			b[1]-=b[3]
-			b[2]-=b[4]
-			glVertex2f(b[1]+6.,b[2])
-			glVertex2f(b[1],b[2]+6.)
-			glVertex2f(b[1]-6.,b[2])
-			glVertex2f(b[1],b[2]-6.)
-			glColor3fv(Wht if b[0]==1 else Blk)
-			glVertex2f(b[1]+4.,b[2])
-			glVertex2f(b[1],b[2]+4.)
-			glVertex2f(b[1]-4.,b[2])
-			glVertex2f(b[1],b[2]-4.)
-			if (b[1]-X0)**2+(b[2]-Y0)**2<256:
-				if Z0<.9 and (Z0 or b[0]!=blue):
-					send("\xEE")
-					miss()
-					break
-				r+=a,
-			elif not (-32.<b[1]<352. and -32.<b[2]<544.):r+=a,
-		glEnd()
-		glEnable(GL_BLEND)
-		for r in reversed(r):del B[r]
-		for r in [a for a in F if F[a]()]:
-			send("%c%c"%(0xD0|(a&15),a>>4&255))
-			del F[r]
 		glBegin(GL_LINES)
 		glColor3fv(RGB[blue])
 		glVertex2i(N1.x,N1.y)
@@ -280,12 +259,71 @@ while not W.has_exit:
 			for a in range(7):
 				glVertex2f(s.x+cos(a*pi13+T)*24.,s.y+sin(a*pi13+T)*24.)
 			glEnd()
+		glBlendFunc(GL_ONE_MINUS_DST_COLOR,GL_ZERO)
+		glColor3fv(Wht)
+		r=0
+		glBegin(GL_TRIANGLES)
+		for a in N:
+			b=36544
+			s=None
+			for c in F:
+				d=(F[c].x-a[2][-1][0])**2+(F[c].y-a[2][-1][1])**2
+				if d<b:
+					s=F[c]
+					b=d
+			if s:a[0]+=ptdir(a[0],atan2(s.y-a[2][-1][1],s.x-a[2][-1][0]),pi18)
+			if len(a)==3:
+				a[2]+=(a[2][-1][0]+cos(a[0])*12.,a[2][-1][1]+sin(a[0])*12.),
+				if len(a[2])==64:a+=None,
+			else:
+				del a[2][0]
+				if not a[2]:r+=1
+			for b in a[2]:
+				glVertex2f(b[0]-8+getrandbits(4),b[1]-8+getrandbits(4))
+				glVertex2f(b[0]-8+getrandbits(4),b[1]-8+getrandbits(4))
+				glVertex2f(b[0]-8+getrandbits(4),b[1]-8+getrandbits(4))
+		glEnd()
+		del N[:r]
+		glBlendFunc(GL_ONE,GL_ONE)
+		glBegin(GL_QUADS)
+		r=[]
+		for a,b in enumerate(B):
+			glColor3fv(RGB[b[0]])
+			glVertex2f(b[1]+3.,b[2])
+			glVertex2f(b[1],b[2]+3.)
+			glVertex2f(b[1]-3.,b[2])
+			glVertex2f(b[1],b[2]-3.)
+			b[1]+=b[3]
+			b[2]+=b[4]
+			glVertex2f(b[1]+6.,b[2])
+			glVertex2f(b[1],b[2]+6.)
+			glVertex2f(b[1]-6.,b[2])
+			glVertex2f(b[1],b[2]-6.)
+			glColor3fv(Wht if b[0]==1 else Blk)
+			glVertex2f(b[1]+4.,b[2])
+			glVertex2f(b[1],b[2]+4.)
+			glVertex2f(b[1]-4.,b[2])
+			glVertex2f(b[1],b[2]-4.)
+			if (b[1]-X0)**2+(b[2]-Y0)**2<256:
+				if Z0<.9 and (Z0 or b[0]!=blue):
+					if (b[1]-X0)**2+(b[2]-Y0)**2<81:
+						send("\xEE")
+						miss()
+						break
+				else:r+=a,
+			elif not (-8.<b[1]<328. and -8.<b[2]<520.):r+=a,
+		glEnd()
+		glBlendFunc(GL_SRC_ALPHA,GL_ONE)
+		for r in reversed(r):del B[r]
+		for r in [a for a in F if F[a]()]:
+			send("%c%c"%(0xD0|(a&15),a>>4&255))
+			del F[r]
 		glColor3fv(Wht)
 		glBegin(GL_TRIANGLE_FAN)
 		glVertex2f(X0,Y0)
 		glColor4f(0.,0.,0.,0.)
 		for a in range(7):
-			glVertex2f(X0+cos(a*pi13-T)*24.,Y0+sin(a*pi13+T)*24.)
+			glVertex2f(X0+cos(a*pi13-T)*16.,Y0+sin(a*pi13+T)*16.)
 		glEnd()
 	W.flip()
 	glClear(GL_COLOR_BUFFER_BIT)
