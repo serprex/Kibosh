@@ -1,15 +1,5 @@
 from __future__ import division
 G=globals()
-Time={}
-for v in range(15,600,45):
-	v+=45
-	Time[v]=lambda v=v:F(Cannon(0,v/45,530,piC7,4,15))
-	Time[v+15]=lambda v=v:F(Cannon(1,320-v/45,530,piC9,4,15))
-	Time[v+30]=lambda:F(Gattle(2,160,530,pi32,5,30))
-for v in range(401,601,20):
-	Time[v]=lambda v=v:F(Cannon(0,-8,v-500,0,5,20))
-	Time[v+1]=lambda v=v:F(Cannon(2,328,v-500,pi,5,15))
-Time[630]=lambda:F(CannonCannon(160))
 def Back(x,z):
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE)
 	glColor4f(1-z,abs(z-.5),z,.4)
@@ -18,11 +8,22 @@ def Back(x,z):
 	glVertex2f(512*sin(x/100),160+160*cos(x/20))
 	glVertex2f(512*sin(x/1000),160+160*cos(x/30))
 	glVertex2f(512*sin(x/10000),160+160*cos(x/40))
-	glVertex2f(200+300*sin(x/6),160+240*cos(x/10))
+	glVertex2f(200+300*sin(x/5),160+240*cos(x/10))
 	glVertex2f(200+300*sin(x/10),160+160*cos(x/10))
 	glVertex2f(200+300*sin(x/100),160-240*cos(x/10))
 	glVertex2f(200+300*sin(x/1000),160-160*cos(x/10))
 	glEnd()
+Time={}
+for v in range(0,300,30):
+	Time[v]=lambda v=v:F(Cannon(0,v,530,piC7,4,15))
+	Time[v+10]=lambda v=v:F(Cannon(1,320-v,530,piC9,4,15))
+	Time[v+20]=lambda:F(Gattle(2,160,530,pi32,5,20))
+for v in range(241,321,20):
+	Time[v]=lambda v=v:F(Cannon(0,-8,v-500,0,5,20))
+	Time[v+1]=lambda v=v:F(Cannon(2,328,v-500,pi,5,15))
+Time[333]=lambda:F(CannonCannon(160))
+for v in range(700,730):
+	Time[v]=lambda v=v:F(Cannon(v%3,10+v*10-7000,0,pi12,6,10))
 """
 ds_grid_set(0,472,1,gchn)
 ds_grid_set(0,472,2,240)
