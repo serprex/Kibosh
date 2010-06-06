@@ -24,10 +24,6 @@ for v in range(241,321,20):
 Time[333]=lambda:F(CannonCannon(160))
 Time[733]=lambda:F(Complement(160))
 """
-ds_grid_set(0,472,1,gchn)
-ds_grid_set(0,472,2,240)
-ds_grid_set(0,555,0,-2)
-ds_grid_set(0,555,1,2)
 v=543;v[2]=1;repeat(4){v+=8;v[2]*=-1*(v<800);v[1]=1;repeat(3){
 ds_grid_set_region(0,v,2,v+1,2,-99+v[1]*99+(v-540)/8)
 ds_grid_set_region(0,v,5,v+1,6,6+v[1])
@@ -69,12 +65,6 @@ ds_grid_set(0,v+1,1,240+240*v[1])
 ds_grid_set(0,v,4,270-45*v[1])
 ds_grid_set(0,v+1,4,270+45*v[1])
 v+=64;v[1]*=-1}
-ds_grid_set(0,1200,0,-2)
-ds_grid_set(0,1200,1,4)
-ds_grid_set(0,1201,0,-3)
-dsg(1310,-1,tchn,240,800)
-ds_grid_set(0,1400,0,-2)
-ds_grid_set(0,1400,1,3)
 v=1450;repeat(4){dsg(v,mis,240,-64,0,270,4,8,128-use.hrd*16);v+=96}
 v=1444;repeat(4+use.hrd){
 ds_grid_set_region(0,v,0,v+1,0,snk)
@@ -89,5 +79,4 @@ v[1]*=-1
 ds_grid_set(0,v+1,3,v[1])
 ds_grid_set(0,v+1,4,180)
 v+=384/(4+use.hrd)}
-dsg(1800,-1,ch1,-96)
 """

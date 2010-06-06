@@ -251,7 +251,7 @@ class Complement:
 		s.x=x
 		s.y=-96
 		s.d=pi12
-		s.l=16
+		s.l=2
 		s.h=s.s=0
 		s.e=1.
 	def __call__(s):
@@ -284,8 +284,7 @@ class Complement:
 NN=N1,N2=(Node(80,256,0),Node(240,256,1))[::1-(blue<<1)]
 ND=defaultdict(lambda:None,{0.:N1,1.:N2})
 X0=Y0=Z0=.5
-E=0
-pause=hit=T=0
+E=pause=hit=T=0
 life=3
 B=[]
 N=[]
@@ -336,7 +335,6 @@ L=__import__(L)
 L.G.update(globals())
 Time=L.Time
 Back=L.Back
-T=720
 while not W.has_exit:
 	W.dispatch_events()
 	if T in Time:Time[T]()
