@@ -22,8 +22,7 @@ for v in range(241,321,20):
 	Time[v]=lambda v=v:F(Cannon(0,-8,v-500,0,5,20))
 	Time[v+1]=lambda v=v:F(Cannon(2,328,v-500,pi,5,15))
 Time[333]=lambda:F(CannonCannon(160))
-for v in range(700,730):
-	Time[v]=lambda v=v:F(Cannon(v%3,10+v*10-7000,0,pi12,6,10))
+Time[733]=lambda:F(Complement(160))
 """
 ds_grid_set(0,472,1,gchn)
 ds_grid_set(0,472,2,240)
