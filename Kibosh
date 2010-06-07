@@ -6,7 +6,7 @@ from pyglet.gl import *
 from socket import *
 from math import *
 from select import select
-from itertools import count,chain
+from itertools import count,chain,cycle
 from random import getrandbits
 from time import time,sleep
 from sys import argv
@@ -23,6 +23,35 @@ pyglet.clock.set_fps_limit(30)
 GLF3=GLfloat*3
 GLF4=GLfloat*4
 Red,Blu,Gre,Wht,Blk=RGB=GLF3(1.,0.,0.),GLF3(0.,0.,1.),GLF3(0.,1.,0.),GLF3(1.,1.,1.),GLF3(0.,0.,0.)
+def ptdir(x,y,m):
+	x%=pi21
+	y%=pi21
+	z=abs(x-y)
+	return min(m,z) if (x+z)%pi21==y else -min(m,z)
+def Bul(p,x,y,d,v):
+	global B
+	B+=[p,x,y,cos(d)*v,sin(d)*v],
+def Nut(s):
+	global N
+	if s is N1:
+		N+=[pi12,[(s.x,s.y)],1],
+		send("\xE1")
+def miss():
+	global hit,life,T
+	if not hit:
+		if not life:"dead"
+		hit=1
+		life-=1
+def on_key(k,o):
+	global pause
+	if 65360<k<65365:
+		N1.awds[k-65361]=o
+		send("%c%c%c"%(0xF0|N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3,N1.x>>1,N1.y>>1))
+	elif k==65307:W.has_exit=1
+W=pyglet.window.Window(320,512,visible=False)
+W.on_key_press=lambda k,m:on_key(k,1)
+W.on_key_release=lambda k,m:on_key(k,0)
+glEnable(GL_BLEND)
 tcp=socket(AF_INET,SOCK_STREAM)
 tcp.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
 tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
@@ -87,13 +116,15 @@ class Cannond:
 	def __call__(s):
 		s.r-=1
 		if not s.r:return 1
+		ct=cos(T)
+		st=sin(T)
 		glColor3fv(s.p)
 		for a in GL_QUADS,GL_LINE_LOOP:
 			glBegin(a)
-			glVertex2f(s.x+s.r*cos(T),s.y+s.r*sin(T))
-			glVertex2f(s.x+s.r*cos(T+pi12),s.y+s.r*sin(T+pi12))
-			glVertex2f(s.x+s.r*cos(T+pi),s.y+s.r*sin(T+pi))
-			glVertex2f(s.x+s.r*cos(T+pi32),s.y+s.r*sin(T+pi32))
+			glVertex2f(s.x+s.r*ct,s.y+s.r*st)
+			glVertex2f(s.x-s.r*st,s.y+s.r*ct)
+			glVertex2f(s.x-s.r*ct,s.y-s.r*st)
+			glVertex2f(s.x+s.r*st,s.y-s.r*ct)
 			glEnd()
 			glColor3fv(Wht)
 		glColor3fv(s.p)
@@ -125,13 +156,15 @@ class Cannon:
 			if s.p<2:Nut(a[1])
 			return s.die()
 		if not T%s.t:Bul(s.p,s.x,s.y,s.d,s.V)
+		ct=cos(T)
+		st=sin(T)
 		glColor3fv(RGB[s.p])
 		for a in GL_QUADS,GL_LINE_LOOP:
 			glBegin(a)
-			glVertex2f(s.x+16.*cos(T),s.y+16.*sin(T))
-			glVertex2f(s.x+16.*cos(T+pi12),s.y+16.*sin(T+pi12))
-			glVertex2f(s.x+16.*cos(T+pi),s.y+16.*sin(T+pi))
-			glVertex2f(s.x+16.*cos(T+pi32),s.y+16.*sin(T+pi32))
+			glVertex2f(s.x+16.*ct,s.y+16.*st)
+			glVertex2f(s.x-16.*st,s.y+16.*ct)
+			glVertex2f(s.x-16.*ct,s.y-16.*st)
+			glVertex2f(s.x+16.*st,s.y-16.*ct)
 			glEnd()
 			glColor3fv(Wht)
 		glColor3fv(RGB[s.p])
@@ -168,13 +201,15 @@ class CannonCannon:
 			s.l-=2
 			for a in range(8):Bul(2,s.x,s.y,pi28*a,8)
 			if s.l==-80:return 1
+		ct=cos(T)
+		st=sin(T)
 		glColor4f(RGB[s.p][0],0.,RGB[s.p][2],s.y/100)
 		for a in GL_QUADS,GL_LINE_LOOP:
 			glBegin(a)
-			glVertex2f(s.x+(80+s.l)*cos(T),s.y+(80+s.l)*sin(T))
-			glVertex2f(s.x+(80+s.l)*cos(T+pi12),s.y+(80+s.l)*sin(T+pi12))
-			glVertex2f(s.x+(80+s.l)*cos(T+pi),s.y+(80+s.l)*sin(T+pi))
-			glVertex2f(s.x+(80+s.l)*cos(T+pi32),s.y+(80+s.l)*sin(T+pi32))
+			glVertex2f(s.x+(80+s.l)*ct,s.y+(80+s.l)*st)
+			glVertex2f(s.x-(80+s.l)*st,s.y+(80+s.l)*ct)
+			glVertex2f(s.x-(80+s.l)*ct,s.y-(80+s.l)*st)
+			glVertex2f(s.x+(80+s.l)*st,s.y-(80+s.l)*ct)
 			glEnd()
 			glColor3fv(Wht)
 class Gattled:
@@ -296,14 +331,17 @@ class Laserd:
 			miss()
 		s.l-=10
 		if not s.l:return 1
-		s.d+=pi18
+		s.d+=pi19
+		sd=sin(s.d)
 		glBegin(GL_TRIANGLES)
 		for a in range(0,s.l,3):
-			glColor3fv(RGB[s.p] if a&3 else Wht if s.p==1 else Blk)
-			c=cos(a)+sin(s.d)
-			glVertex2f(s.x+s.h*a+c*(getrandbits(4)-8),s.y+s.v*a+c*(getrandbits(4)-8))
-			glVertex2f(s.x+s.h*a+c*(getrandbits(4)-8),s.y+s.v*a+c*(getrandbits(4)-8))
-			glVertex2f(s.x+s.h*a+c*(getrandbits(4)-8),s.y+s.v*a+c*(getrandbits(4)-8))
+			c=cos(a)+sd
+			ha=s.x+s.h*a-8*c
+			va=s.y+s.v*a-8*c
+			if a&3<2:glColor3fv(RGB[s.p] if not a&3 else Wht if s.p==1 else Blk)
+			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
+			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
+			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
 		glEnd()
 class Laser:
 	die=lambda s:not Fd.add(Laserd(s))
@@ -321,14 +359,17 @@ class Laser:
 		v=sin(s.t)
 		h=cos(s.t)
 		s.l+=20 if -40<s.x+s.l*h<340 and -40<s.y+s.l*v<552 else -20
-		s.d+=pi18
+		s.d+=pi19
+		sd=sin(s.d)
 		glBegin(GL_TRIANGLES)
 		for a in range(0,s.l,3):
-			glColor3fv(RGB[s.p] if a&3 else Wht if s.p==1 else Blk)
-			c=cos(a)+sin(s.d)
-			glVertex2f(s.x+h*a+c*(getrandbits(4)-8),s.y+v*a+c*(getrandbits(4)-8))
-			glVertex2f(s.x+h*a+c*(getrandbits(4)-8),s.y+v*a+c*(getrandbits(4)-8))
-			glVertex2f(s.x+h*a+c*(getrandbits(4)-8),s.y+v*a+c*(getrandbits(4)-8))
+			c=cos(a)+sd
+			ha=s.x+h*a-8*c
+			va=s.y+v*a-8*c
+			if a&3<2:glColor3fv(RGB[s.p] if not a&3 else Wht if s.p==1 else Blk)
+			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
+			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
+			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
 		glEnd()
 class LaserCd:
 	def __init__(s,z):
@@ -363,25 +404,26 @@ class LaserC:
 		L.y=s.y=s.y+s.v
 		if s.a:L.t+=ptdir(L.t,atan2(Y0-s.y,X0-s.x),pi/s.a)
 		if not (-32<L.x<352 and -32<L.y<544):return L.die()
-		s.l()
 		a=near(L.x,L.y)
 		if a[0]<400 and a[2] and a[1] is N1:
 			if L<2:Nut(a[1])
 			return s.die()
+		ct=cos(T)
+		st=sin(T)
 		glColor3fv(RGB[L.p])
 		for a in GL_QUADS,GL_LINE_LOOP:
 			glBegin(a)
-			glVertex2f(L.x+16.*cos(T),L.y+16.*sin(T))
-			glVertex2f(L.x+16.*cos(T+pi12),L.y+16.*sin(T+pi12))
-			glVertex2f(L.x+16.*cos(T+pi),L.y+16.*sin(T+pi))
-			glVertex2f(L.x+16.*cos(T+pi32),L.y+16.*sin(T+pi32))
+			glVertex2f(s.x+16.*ct,s.y+16.*st)
+			glVertex2f(s.x-16.*st,s.y+16.*ct)
+			glVertex2f(s.x-16.*ct,s.y-16.*st)
+			glVertex2f(s.x+16.*st,s.y-16.*ct)
 			glEnd()
 			glColor3fv(Wht)
+		return L()
 NN=N1,N2=(Node(80,256,0),Node(240,256,1))[::1-(blue<<1)]
 ND=defaultdict(lambda:None,{0.:N1,1.:N2})
 X0=Y0=Z0=.5
-S=E=pause=hit=T=0
-T=1250
+E=pause=hit=T=0
 life=3
 B=[]
 N=[]
@@ -400,40 +442,13 @@ class F:
 		if x in s.F:del s.F[x]
 F=F()
 Fd=set()
-def ptdir(x,y,m):
-	x%=pi21
-	y%=pi21
-	z=abs(x-y)
-	return min(m,z) if (x+z)%pi21==y else -min(m,z)
-def Bul(p,x,y,d,v):
-	global B
-	B+=[p,x,y,cos(d)*v,sin(d)*v],
-def Nut(s):
-	global N
-	if s is N1:
-		N+=[pi12,[(s.x,s.y)],1],
-		send("\xE1")
-def miss():
-	global hit,life,T
-	if not hit:
-		if not life:"dead"
-		hit=1
-		life-=1
-def on_key(k,o):
-	global pause
-	if 65360<k<65365:
-		N1.awds[k-65361]=o
-		send("%c%c%c"%(0xF0|N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3,N1.x>>1,N1.y>>1))
-	elif k==65307:W.has_exit=1
-W=pyglet.window.Window(320,512)
-W.set_location(200+400*blue,50)
-W.on_key_press=lambda k,m:on_key(k,1)
-W.on_key_release=lambda k,m:on_key(k,0)
-glEnable(GL_BLEND)
 L=__import__(L)
 L.G.update(globals())
 Time=L.Time
 Back=L.Back
+W.set_visible(True)
+W.set_location(200+321*blue,50)
+T=1111
 while not W.has_exit:
 	W.dispatch_events()
 	if T in Time:Time[T]()
@@ -466,10 +481,10 @@ while not W.has_exit:
 	Y0=N1.y+(N2.y-N1.y)*Z0
 	if hit:
 		for s in NN:
-			s.x-=cmp(s.x,160)<<4
-			s.y-=cmp(s.y,256)<<4
-			if -24<s.x-160<24:s.x=160
-			if -24<s.y-256<24:s.y=256
+			s.x-=cmp(s.x,160)*12
+			s.y-=cmp(s.y,256)*12
+			if -16<s.x-160<16:s.x=160
+			if -16<s.y-256<16:s.y=256
 		hit=not(256==N1.y==N2.y and 160==N1.x==N2.x)
 		B=[]
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE)
@@ -517,7 +532,6 @@ while not W.has_exit:
 			r+=a,
 			if s==N1:
 				E+=1
-				S+=1
 				if E==40:
 					Nut(N1)
 					E=0
