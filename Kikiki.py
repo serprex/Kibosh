@@ -22,7 +22,11 @@ for v in range(241,321,20):
 	Time[v]=lambda v=v:F(Cannon(0,-8,v-500,0,5,20))
 	Time[v+1]=lambda v=v:F(Cannon(2,328,v-500,pi,5,15))
 Time[333]=lambda:F(CannonCannon(160))
-Time[733]=lambda:F(Complement(160))
+Time[600]=lambda:F(Complement(160))
+for v in range(900,1200,30):Time[v]=lambda v=v:(F(Gattle((v%60)//30,0,1300-v,piC6,6,8,6)),F(Gattle(1+(v%60)//30,320,1300-v,piCA,6,10,5)))
+for v in range(1101,1201,30):Time[v]=lambda v=v:(F(Cannon((v%60)//30,v-1100,-12,pi38,6,8)),F(Cannon(1+(v%60)//30,1400-v,-12,pi58,6,10)))
+for v in range(1202,1400,60):Time[v]=lambda:F(LaserC(0,-8,520,0,5,pi32))
+for v in range(1230,1400,60):Time[v]=lambda:F(LaserC(1,-8,520,0,5,pi32))
 """
 v=543;v[2]=1;repeat(4){v+=8;v[2]*=-1*(v<800);v[1]=1;repeat(3){
 ds_grid_set_region(0,v,2,v+1,2,-99+v[1]*99+(v-540)/8)
@@ -37,10 +41,6 @@ ds_grid_set(0,v+1,1,504)
 ds_grid_set(0,v+1,3,-v[2])
 ds_grid_set(0,v+1,4,200)
 v+=24;v[1]+=1}}
-ds_grid_set(0,950,0,-3)
-ds_grid_set_region(0,951,0,952,0,-1)
-ds_grid_set_region(0,951,1,952,1,gchn)
-ds_grid_set(0,952,3,-600)
 v=1000;repeat(8){v+=24;dsg(v,-2,v/10-99.9)}
 v=1001;repeat(4+use.hrd){
 ds_grid_set_region(0,v,0,v+1,0,can)
