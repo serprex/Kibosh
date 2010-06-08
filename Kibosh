@@ -19,6 +19,10 @@ except:
 	cmp=lambda x,y:(x>y)or-(x<y)
 	getnext=lambda x:x.__next__
 for a in range(1,16):globals().update(("pi%X%X"%(a,b),pi*a/b) for b in range(1,16))
+pi63v=0,pi13,pi23,pi33,pi43,pi53,pi63
+def pi1v(x,v=[a%pi21 for a in range(1420)]):return v[x%1420]
+def sin1(x,v=list(map(sin,range(1420)))):return v[x%1420]
+def cos1(x,v=list(map(cos,range(1420)))):return v[x%1420]
 pyglet.clock.set_fps_limit(30)
 GLF3=GLfloat*3
 GLF4=GLfloat*4
@@ -37,17 +41,56 @@ def Nut(s):
 		N+=[pi12,[(s.x,s.y)],1],
 		send("\xE1")
 def miss():
-	global hit,life,T
+	global hit,life,E
 	if not hit:
-		if not life:"dead"
+		if not life:print "dead"
+		E=0
 		hit=1
 		life-=1
+def atch():
+	global E
+	send(chr(0xE2|(E==39)))
+	E+=1
+	if E==40:
+		Nut(N1)
+		E=0
+def near(x,y):return min(chain((((a.x-x)**2+(a.y-y)**2,a,a is N1) for a in NN),((((a[1][-1][0]-x)**2+(a[1][-1][1]-y)**2,a,a[2]) for a in N if a[0] is not None))))
+def msg(x,y=""):
+	M[x]=y
+	send("%c%c%s"%(0xC0|len(y),x,y))
 def on_key(k,o):
 	global pause
 	if 65360<k<65365:
 		N1.awds[k-65361]=o
 		send("%c%c%c"%(0xF0|N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3,N1.x>>1,N1.y>>1))
 	elif k==65307:W.has_exit=1
+X0=Y0=Z0=.5
+T=E=pause=hit=0
+life=3
+B=[]
+N=[]
+M={}
+class F:
+	def __init__(s):
+		s.F={}
+		s._F={}
+		s.R=[]
+		s.__iter__=s.F.__iter__
+		s.__getitem__=s.F.__getitem__
+		s.__contains__=s.F.__contains__
+		s.f=getnext(count())
+	def __call__(s,x):
+		s._F[s.f()&4095]=x
+		return x
+	def __delitem__(s,x):
+		s.R+=x,
+	def flush(s):
+		for a in s.R:
+			if a in s.F:del s.F[a]
+		s.F.update(s._F)
+		s._F.clear()
+F=F()
+Fd=set()
 W=pyglet.window.Window(320,512,visible=False)
 W.on_key_press=lambda k,m:on_key(k,1)
 W.on_key_release=lambda k,m:on_key(k,0)
@@ -80,10 +123,8 @@ else:
 	tcp.listen(1)
 	tcp=tcp.accept()[0]
 	tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
-	T=time()
 	tcp.send("%c%c%s"%(blue|H-1<<1|(len(L)&0x1F00)>>5,len(L)&255,L))
-	tcp.send(tcp.recv(1))
-	sleep((time()-T)/2)
+	sleep((time()-(tcp.send(tcp.recv(1)),time())[1])/-2)
 recv=tcp.recv
 send=tcp.send
 class Node:
@@ -102,10 +143,6 @@ class Node:
 			elif s.x>320:s.x=320
 			if s.y<0:s.y=0
 			elif s.y>511:s.y=511
-def near(x,y):return min(chain((((a.x-x)**2+(a.y-y)**2,a,a is N1) for a in NN),((((a[1][-1][0]-x)**2+(a[1][-1][1]-y)**2,a,a[2]) for a in N if a[0] is not None))))
-def msg(x,y=""):
-	M[x]=y
-	send("%c%c%s"%(0xC0|len(y),x,y))
 class Cannond:
 	def __init__(s,z):
 		s.x=z.x
@@ -116,8 +153,8 @@ class Cannond:
 	def __call__(s):
 		s.r-=1
 		if not s.r:return 1
-		ct=cos(T)
-		st=sin(T)
+		ct=cos1(T)
+		st=sin1(T)
 		glColor3fv(s.p)
 		for a in GL_QUADS,GL_LINE_LOOP:
 			glBegin(a)
@@ -146,25 +183,27 @@ class Cannon:
 		s.t=t
 		s.d=d if D is None else D
 		s.V=V
+		s.T=0
 	def __call__(s):
+		s.T+=1
 		s.x+=s.h
 		s.y+=s.v
 		s.d+=ptdir(s.d,atan2(Y0-s.y,X0-s.x),pi19)
-		if not (-32<s.x<352 and -32<s.y<544):return 1
+		ct=cos1(s.T)*16.
+		st=sin1(s.T)*16.
+		if not(-32<s.x<352 and -32<s.y<544):return 1
 		a=near(s.x,s.y)
 		if a[0]<400 and a[2]:
 			if s.p<2:Nut(a[1])
 			return s.die()
-		if not T%s.t:Bul(s.p,s.x,s.y,s.d,s.V)
-		ct=cos(T)
-		st=sin(T)
+		if not s.T%s.t:Bul(s.p,s.x+ct,s.y+st,s.d,s.V)
 		glColor3fv(RGB[s.p])
 		for a in GL_QUADS,GL_LINE_LOOP:
 			glBegin(a)
-			glVertex2f(s.x+16.*ct,s.y+16.*st)
-			glVertex2f(s.x-16.*st,s.y+16.*ct)
-			glVertex2f(s.x-16.*ct,s.y-16.*st)
-			glVertex2f(s.x+16.*st,s.y-16.*ct)
+			glVertex2f(s.x+ct,s.y+st)
+			glVertex2f(s.x-st,s.y+ct)
+			glVertex2f(s.x-ct,s.y-st)
+			glVertex2f(s.x+st,s.y-ct)
 			glEnd()
 			glColor3fv(Wht)
 		glColor3fv(RGB[s.p])
@@ -199,10 +238,10 @@ class CannonCannon:
 			if not T&15:F(Cannon(s.p,s.x,s.y,pi32,8,6))
 		else:
 			s.l-=2
-			for a in range(8):Bul(2,s.x,s.y,pi28*a,8)
+			for a in range(8):Bul(2,s.x,s.y,pi28*a+T,8)
 			if s.l==-80:return 1
-		ct=cos(T)
-		st=sin(T)
+		ct=cos1(T)
+		st=sin1(T)
 		glColor4f(RGB[s.p][0],0.,RGB[s.p][2],s.y/100)
 		for a in GL_QUADS,GL_LINE_LOOP:
 			glBegin(a)
@@ -247,16 +286,18 @@ class Gattle:
 		s.t=t
 		s.d=0
 		s.V=V
+		s.T=0
 	def __call__(s):
 		s.x+=s.h
 		s.y+=s.v
 		s.d+=pi19/s.t
-		if not (-32<s.x<352 and -32<s.y<544):return 1
+		s.T+=1
+		if not(-32<s.x<352 and -32<s.y<544):return 1
 		a=near(s.x,s.y)
 		if a[0]<400 and a[2]:
 			if s.p<2:Nut(a[1])
 			return s.die()
-		if not T%s.t:
+		if not s.T%s.t:
 			Bul(s.p,s.x,s.y,s.d,s.V)
 			Bul(s.p,s.x,s.y,s.d+pi23,s.V)
 			Bul(s.p,s.x,s.y,s.d-pi23,s.V)
@@ -287,8 +328,9 @@ class Complement:
 	def __call__(s):
 		if "O" in M:
 			del M["O"]
-			s.l<<=1
 			s.h=60
+			s.l<<=1
+			if s.l==16:s.s=3
 		if s.s<2:
 			s.y+=(16,-2)[s.s]
 			s.s+=s.y==(640,444)[s.s]
@@ -297,23 +339,48 @@ class Complement:
 			a=near(s.x,s.y)
 			if s.h:s.h-=1
 			elif a[0]<999 and a[2] and a[1] is not N1:msg("O")
-			if s.l==16:s.s=3
-		elif s.s==3:
-			s.e-=.1
-			s.d+=s.e**2*pi/30
-			if s.e<0.:s.s=4
 		else:
-			s.e-=1
-			if s.e<-60.:return 1
-		glColor3f(0.,1.,0.)
+			s.e-=1.
+			if s.e==60.:return 1
+		glColor3fv(RGB[2])
 		glBegin(GL_LINE_LOOP)
 		for a in range(s.l):
 			ca=cos(s.d+pi21*a/s.l)*s.e
 			sa=sin(s.d+pi21*a/s.l)*s.e
-			if T&3 and s.s<3:B.append([N2.p if not Z0 else N1.p if Z0==1. else 2,s.x+ca*100,s.y+sa*100,ca*8,sa*8])
-			for a in range(12,100,3):glVertex2f(s.x+ca*a+(getrandbits(3)-4),s.y+sa*a+(getrandbits(3)-4))
+			if T&3 and s.s<3:B.append([getattr(ND[1.-Z0],"p",2),s.x+ca*99.,s.y+sa*99.,ca*8.,sa*8.])
+			for a in range(9,99,3):glVertex2f(s.x+ca*a+getrandbits(3)-4,s.y+sa*a+getrandbits(3)-4)
 		glEnd()
-class Laserd:
+class Laser(object):
+	die=lambda s:not Fd.add(Laserd(s))
+	def __init__(s,p,x,y,d):
+		s.p=p
+		s.x=x
+		s.y=y
+		s.t=d
+		s.d=getnext(cycle(sin(pi19*a) for a in range(18)))
+		s.l=0
+	def __call__(s):
+		v=((s.x-N1.x)**2+(s.y-N1.y)**2)**.5
+		if not Z0 and v<s.l and sin(abs(atan2(s.y-N1.y,s.x-N1.x)-s.t)%pi21)*v<9:
+			if s.p!=N1.p:
+				send("\xEE")
+				miss()
+			else:atch()
+		v=sin(s.t)
+		h=cos(s.t)
+		s.l+=20 if -40<s.x+s.l*h<340 and -40<s.y+s.l*v<552 else -20
+		sd=s.d()
+		glBegin(GL_TRIANGLES)
+		for a in range(0,s.l,3):
+			c=cos1(a)+sd
+			ha=s.x+h*a-c*8
+			va=s.y+v*a-c*8
+			if a&3<2:glColor3fv(RGB[s.p] if not a&3 else Wht if s.p==1 else Blk)
+			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
+			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
+			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
+		glEnd()
+class Laserd(Laser):
 	die=lambda s:not Fd.add(Laserd(s))
 	def __init__(s,z):
 		s.p=z.p
@@ -325,68 +392,28 @@ class Laserd:
 		s.d=z.d
 		s.l=z.l
 	def __call__(s):
-		v=((s.x-N1.x)**2+(s.y-N1.y)**2)**.5
-		if not Z0 and s.p!=N1.p and v<s.l and sin(abs(atan2(s.y-N1.y,s.x-N1.x)-s.t)%pi21)*v<9:
-			send("\xEE")
-			miss()
-		s.l-=10
-		if not s.l:return 1
-		s.d+=pi19
-		sd=sin(s.d)
-		glBegin(GL_TRIANGLES)
-		for a in range(0,s.l,3):
-			c=cos(a)+sd
-			ha=s.x+s.h*a-8*c
-			va=s.y+s.v*a-8*c
-			if a&3<2:glColor3fv(RGB[s.p] if not a&3 else Wht if s.p==1 else Blk)
-			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
-			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
-			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
-		glEnd()
-class Laser:
-	die=lambda s:not Fd.add(Laserd(s))
-	def __init__(s,p,x,y,d):
-		s.p=p
-		s.x=x
-		s.y=y
-		s.t=d
-		s.d=s.l=0
-	def __call__(s):
-		v=((s.x-N1.x)**2+(s.y-N1.y)**2)**.5
-		if not Z0 and s.p!=N1.p and v<s.l and abs(sin(atan2(N1.y-s.y,N1.x-s.x)-s.t))*v<9:
-			send("\xEE")
-			miss()
-		v=sin(s.t)
-		h=cos(s.t)
-		s.l+=20 if -40<s.x+s.l*h<340 and -40<s.y+s.l*v<552 else -20
-		s.d+=pi19
-		sd=sin(s.d)
-		glBegin(GL_TRIANGLES)
-		for a in range(0,s.l,3):
-			c=cos(a)+sd
-			ha=s.x+h*a-8*c
-			va=s.y+v*a-8*c
-			if a&3<2:glColor3fv(RGB[s.p] if not a&3 else Wht if s.p==1 else Blk)
-			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
-			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
-			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
-		glEnd()
+		s.l-=30
+		return s.l<0 or super(Laserd,s).__call__()
 class LaserCd:
 	def __init__(s,z):
 		s.x=z.l.x
 		s.y=z.l.y
 		s.p=RGB[z.l.p]
 		s.r=16
+		s.T=z.T
 	def __call__(s):
 		s.r-=1
+		s.T+=1
 		if not s.r:return 1
+		ct=cos1(s.T)*16.
+		st=sin1(s.T)*16.
 		glColor3fv(s.p)
 		for a in GL_QUADS,GL_LINE_LOOP:
 			glBegin(a)
-			glVertex2f(s.x+s.r*cos(T),s.y+s.r*sin(T))
-			glVertex2f(s.x+s.r*cos(T+pi12),s.y+s.r*sin(T+pi12))
-			glVertex2f(s.x+s.r*cos(T+pi),s.y+s.r*sin(T+pi))
-			glVertex2f(s.x+s.r*cos(T+pi32),s.y+s.r*sin(T+pi32))
+			glVertex2f(s.x+ct,s.y+st)
+			glVertex2f(s.x-st,s.y+ct)
+			glVertex2f(s.x-ct,s.y-st)
+			glVertex2f(s.x+st,s.y-ct)
 			glEnd()
 			glColor3fv(Wht)
 class LaserC:
@@ -398,57 +425,38 @@ class LaserC:
 		s.h=cos(d if D is None else D)*v
 		s.v=sin(d if D is None else D)*v
 		s.a=a
+		s.T=0
 	def __call__(s):
 		L=s.l
 		L.x=s.x=s.x+s.h
 		L.y=s.y=s.y+s.v
+		s.T+=1
 		if s.a:L.t+=ptdir(L.t,atan2(Y0-s.y,X0-s.x),pi/s.a)
-		if not (-32<L.x<352 and -32<L.y<544):return L.die()
+		if not(-32<L.x<352 and -32<L.y<544):return L.die()
 		a=near(L.x,L.y)
 		if a[0]<400 and a[2] and a[1] is N1:
 			if L<2:Nut(a[1])
 			return s.die()
-		ct=cos(T)
-		st=sin(T)
+		ct=cos1(s.T)*16.
+		st=sin1(s.T)*16.
 		glColor3fv(RGB[L.p])
 		for a in GL_QUADS,GL_LINE_LOOP:
 			glBegin(a)
-			glVertex2f(s.x+16.*ct,s.y+16.*st)
-			glVertex2f(s.x-16.*st,s.y+16.*ct)
-			glVertex2f(s.x-16.*ct,s.y-16.*st)
-			glVertex2f(s.x+16.*st,s.y-16.*ct)
+			glVertex2f(s.x+ct,s.y+st)
+			glVertex2f(s.x-st,s.y+ct)
+			glVertex2f(s.x-ct,s.y-st)
+			glVertex2f(s.x+st,s.y-ct)
 			glEnd()
 			glColor3fv(Wht)
 		return L()
 NN=N1,N2=(Node(80,256,0),Node(240,256,1))[::1-(blue<<1)]
 ND=defaultdict(lambda:None,{0.:N1,1.:N2})
-X0=Y0=Z0=.5
-E=pause=hit=T=0
-life=3
-B=[]
-N=[]
-M={}
-class F:
-	def __init__(s):
-		s.F={}
-		s.__iter__=s.F.__iter__
-		s.__getitem__=s.F.__getitem__
-		s.__contains__=s.F.__contains__
-		s.f=getnext(count())
-	def __call__(s,x):
-		s.F[s.f()&1023]=x
-		return x
-	def __delitem__(s,x):
-		if x in s.F:del s.F[x]
-F=F()
-Fd=set()
 L=__import__(L)
 L.G.update(globals())
 Time=L.Time
 Back=L.Back
 W.set_visible(True)
 W.set_location(200+321*blue,50)
-T=1111
 while not W.has_exit:
 	W.dispatch_events()
 	if T in Time:Time[T]()
@@ -469,22 +477,23 @@ while not W.has_exit:
 			a=recv(1)
 			M[a]="" if r==0xC0 else recv(r&15)
 		elif r==0xE1:N+=[pi12,[(N2.x,N2.y)],False],
+		elif r==0xE2:E+=1
+		elif r==0xE3:E=0
 		elif r==0xEE:miss()
 		elif r==0xEF:raise SystemExit
 		else:raise Exception("%X %s"%(r,recv(64)))
 	N2.move()
-	if N1.y!=N2.y:
-		Z0+=(N1.y-N2.y)/((N1.x-N2.x)**2+(N1.y-N2.y)**2)**.5
+	s=N1.y-N2.y
+	if s:
+		Z0+=s/((N1.x-N2.x)**2+s**2)**.5
 		if Z0<0.:Z0=0.
 		elif Z0>1.:Z0=1.
 	X0=N1.x+(N2.x-N1.x)*Z0
-	Y0=N1.y+(N2.y-N1.y)*Z0
+	Y0=N1.y-s*Z0
 	if hit:
 		for s in NN:
-			s.x-=cmp(s.x,160)*12
-			s.y-=cmp(s.y,256)*12
-			if -16<s.x-160<16:s.x=160
-			if -16<s.y-256<16:s.y=256
+			s.x=160 if -16<s.x-160<16 else s.x-cmp(s.x,160)*12
+			s.y=256 if -16<s.y-256<16 else s.y-cmp(s.y,256)*12
 		hit=not(256==N1.y==N2.y and 160==N1.x==N2.x)
 		B=[]
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE)
@@ -498,17 +507,18 @@ while not W.has_exit:
 		glColor3fv(Blk)
 		glVertex2i(s.x,s.y)
 		glColor3fv(RGB[s.p])
-		for a in range(7):glVertex2f(s.x+cos(a*pi13+T)*24.,s.y+sin(a*pi13+T)*24.)
+		for a in pi63v:glVertex2f(s.x+cos(a+T)*24.,s.y+sin(a+T)*24.)
 		glEnd()
 	glColor3fv(Wht)
 	glBegin(GL_TRIANGLE_FAN)
 	glVertex2f(X0,Y0)
 	glColor4f(0.,0.,0.,0.)
-	for a in range(7):glVertex2f(X0+cos(a*pi13)*12.,Y0+sin(a*pi13)*12.)
+	for a in pi63v:glVertex2f(X0+cos(a)*12.,Y0+sin(a)*12.)
 	glEnd()
 	glBlendFunc(GL_ONE,GL_ZERO)
 	glBegin(GL_QUADS)
 	r=[]
+	s=ND[Z0]
 	for a,b in enumerate(B):
 		glColor3fv(RGB[b[0]])
 		glVertex2f(b[1]+3.,b[2])
@@ -526,26 +536,22 @@ while not W.has_exit:
 		glVertex2f(b[1],b[2]+4.)
 		glVertex2f(b[1]-4.,b[2])
 		glVertex2f(b[1],b[2]-4.)
-		s=ND[Z0]
-		if not (-8.<b[1]<328. and -8.<b[2]<520.):r+=a,
+		if not(-8.<b[1]<328. and -8.<b[2]<520.):r+=a,
 		elif s and b[0]==s.p and (b[1]-s.x)**2+(b[2]-s.y)**2<400:
 			r+=a,
-			if s==N1:
-				E+=1
-				if E==40:
-					Nut(N1)
-					E=0
-		elif (b[1]-X0)**2+(b[2]-Y0)**2<49. and Z0<.6 and (Z0 or b[0]!=blue):
+			if s==N1:atch()
+		elif (b[1]-X0)**2+(b[2]-Y0)**2<49. and Z0<.5 and (Z0 or b[0]!=blue):
 			send("\xEE")
 			miss()
 			break
 	glEnd()
-	for r in reversed(r):
-		del B[r]
-	for r in [a for a in range(1024) if a in F and F[a]()]:
-		send("%c%c"%(0xD0|(r&15),r>>4))
-		del F[r]
-	Fd.difference_update([a for a in Fd if a()])
+	for r in reversed(r):del B[r]
+	F.flush()
+	for r in F:
+		if F[r]():
+			send("%c%c"%(0xD0|(r&15),r>>4))
+			del F[r]
+	Fd.difference_update([r for r in Fd if r()])
 	glBlendFunc(GL_ONE_MINUS_DST_COLOR,GL_ZERO)
 	glBegin(GL_TRIANGLES)
 	glColor3fv(Wht)
