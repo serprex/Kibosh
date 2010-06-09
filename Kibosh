@@ -32,14 +32,7 @@ def ptdir(x,y,m):
 	y%=pi21
 	z=abs(x-y)
 	return min(m,z) if (x+z)%pi21==y else -min(m,z)
-def Bul(p,x,y,d,v):
-	global B
-	B+=[p,x,y,cos(d)*v,sin(d)*v],
-def Nut(s):
-	global N
-	if s is N1:
-		N+=[pi12,[(s.x,s.y)],1],
-		send("\xE1")
+def Bul(p,x,y,d,v):return Bad([p,x,y,cos(d)*v,sin(d)*v])
 def miss():
 	global hit,life,E
 	if not hit:
@@ -52,7 +45,7 @@ def atch():
 	send(chr(0xE2|(E==39)))
 	E+=1
 	if E==40:
-		Nut(N1)
+		Nut(N1,0)
 		E=0
 def near(x,y):return min(chain((((a.x-x)**2+(a.y-y)**2,a,a is N1) for a in NN),((((a[1][-1][0]-x)**2+(a[1][-1][1]-y)**2,a,a[2]) for a in N if a[0] is not None))))
 def msg(x,y=""):
@@ -65,9 +58,10 @@ def on_key(k,o):
 		send("%c%c%c"%(0xF0|N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3,N1.x>>1,N1.y>>1))
 	elif k==65307:W.has_exit=1
 X0=Y0=Z0=.5
-T=E=pause=hit=0
+T=E=pause=hit=hit2=0
 life=3
 B=[]
+Bad=B.append
 N=[]
 M={}
 class F:
@@ -84,11 +78,6 @@ class F:
 		return x
 	def __delitem__(s,x):
 		s.R+=x,
-	def flush(s):
-		for a in s.R:
-			if a in s.F:del s.F[a]
-		s.F.update(s._F)
-		s._F.clear()
 F=F()
 Fd=set()
 W=pyglet.window.Window(320,512,visible=False)
@@ -102,7 +91,7 @@ blue=getrandbits(1)
 hopo="",2000
 L="Kikiki"
 H=1
-for a in chain(open("K.txt").readlines(),argv[1:]):
+for a in chain(open("K.txt"),argv[1:]):
 	if not a or a[0]=="#":continue
 	elif ":" in a:hopo=(a[:a.find(":")] or hopo[0] if a.find("::")==-1 else ""),int(a[a.rfind(":")+1:] or hopo[1])
 	elif "." in a:hopo=a,hopo[1]
@@ -194,7 +183,7 @@ class Cannon:
 		if not(-32<s.x<352 and -32<s.y<544):return 1
 		a=near(s.x,s.y)
 		if a[0]<400 and a[2]:
-			if s.p<2:Nut(a[1])
+			if a[1] is N1 and N1.p==s.p:Nut()
 			return s.die()
 		if not s.T%s.t:Bul(s.p,s.x+ct,s.y+st,s.d,s.V)
 		glColor3fv(RGB[s.p])
@@ -284,9 +273,8 @@ class Gattle:
 		s.h=cos(d)*v
 		s.v=sin(d)*v
 		s.t=t
-		s.d=0
+		s.T=s.d=0
 		s.V=V
-		s.T=0
 	def __call__(s):
 		s.x+=s.h
 		s.y+=s.v
@@ -295,7 +283,7 @@ class Gattle:
 		if not(-32<s.x<352 and -32<s.y<544):return 1
 		a=near(s.x,s.y)
 		if a[0]<400 and a[2]:
-			if s.p<2:Nut(a[1])
+			if a[1] is N1 and N1.p==s.p:Nut()
 			return s.die()
 		if not s.T%s.t:
 			Bul(s.p,s.x,s.y,s.d,s.V)
@@ -347,7 +335,7 @@ class Complement:
 		for a in range(s.l):
 			ca=cos(s.d+pi21*a/s.l)*s.e
 			sa=sin(s.d+pi21*a/s.l)*s.e
-			if T&3 and s.s<3:B.append([getattr(ND[1.-Z0],"p",2),s.x+ca*99.,s.y+sa*99.,ca*8.,sa*8.])
+			if T&3 and s.s<3:Bad([getattr(ND[1.-Z0],"p",2),s.x+ca*99.,s.y+sa*99.,ca*8.,sa*8.])
 			for a in range(9,99,3):glVertex2f(s.x+ca*a+getrandbits(3)-4,s.y+sa*a+getrandbits(3)-4)
 		glEnd()
 class Laser(object):
@@ -381,7 +369,6 @@ class Laser(object):
 			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
 		glEnd()
 class Laserd(Laser):
-	die=lambda s:not Fd.add(Laserd(s))
 	def __init__(s,z):
 		s.p=z.p
 		s.x=z.x
@@ -435,7 +422,7 @@ class LaserC:
 		if not(-32<L.x<352 and -32<L.y<544):return L.die()
 		a=near(L.x,L.y)
 		if a[0]<400 and a[2] and a[1] is N1:
-			if L<2:Nut(a[1])
+			if L.p<2:Nut(a[1])
 			return s.die()
 		ct=cos1(s.T)*16.
 		st=sin1(s.T)*16.
@@ -451,6 +438,11 @@ class LaserC:
 		return L()
 NN=N1,N2=(Node(80,256,0),Node(240,256,1))[::1-(blue<<1)]
 ND=defaultdict(lambda:None,{0.:N1,1.:N2})
+def Nut(s=N1,x=1):
+	global N,Nap
+	if s is N1:
+		N+=[pi12,[(s.x,s.y)],1],
+		Nap=x
 L=__import__(L)
 L.G.update(globals())
 Time=L.Time
@@ -472,16 +464,22 @@ while not W.has_exit:
 			r=(r&15)|ord(recv(1))<<4
 			if r in F:
 				F[r].die()
-				del F[r]
+				del F.F[r]
+		elif r&0xF0==0xB0:
+			r=(r&15)|ord(recv(1))<<4
+			if r in F:
+				F[r].die()
+				del F.F[r]
+			N+=[pi12,[(N2.x,N2.y)],0],
 		elif r&0xF0==0xC0:
 			a=recv(1)
 			M[a]="" if r==0xC0 else recv(r&15)
-		elif r==0xE1:N+=[pi12,[(N2.x,N2.y)],False],
 		elif r==0xE2:E+=1
-		elif r==0xE3:E=0
+		elif r==0xE3:
+			E=0
+			N+=[pi12,[(N2.x,N2.y)],0],
 		elif r==0xEE:miss()
-		elif r==0xEF:raise SystemExit
-		else:raise Exception("%X %s"%(r,recv(64)))
+		else:raise SystemExit("%.2X%s"%(r,recv(78)))
 	N2.move()
 	s=N1.y-N2.y
 	if s:
@@ -496,6 +494,11 @@ while not W.has_exit:
 			s.y=256 if -16<s.y-256<16 else s.y-cmp(s.y,256)*12
 		hit=not(256==N1.y==N2.y and 160==N1.x==N2.x)
 		B=[]
+		hit2=30
+	elif hit2:
+		hit2-=1
+		if not hit2:
+			Bad=B.append
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE)
 	glBegin(GL_LINES)
 	for s in NN:
@@ -540,16 +543,23 @@ while not W.has_exit:
 		elif s and b[0]==s.p and (b[1]-s.x)**2+(b[2]-s.y)**2<400:
 			r+=a,
 			if s==N1:atch()
-		elif (b[1]-X0)**2+(b[2]-Y0)**2<49. and Z0<.5 and (Z0 or b[0]!=blue):
+		elif (b[1]-X0)**2+(b[2]-Y0)**2<49. and Z0<=.5 and (Z0 or b[0]!=blue):
 			send("\xEE")
 			miss()
 			break
 	glEnd()
 	for r in reversed(r):del B[r]
-	F.flush()
+	for r in F.R:
+		if r in F.F:del F.F[r]
+	F.F.update(F._F)
+	F._F.clear()
+	Nap=0
 	for r in F:
 		if F[r]():
-			send("%c%c"%(0xD0|(r&15),r>>4))
+			if Nap:
+				send("%c%c"%(0xB0|(r&15),r>>4))
+				Nap=0
+			else:send("%c%c"%(0xD0|(r&15),r>>4))
 			del F[r]
 	Fd.difference_update([r for r in Fd if r()])
 	glBlendFunc(GL_ONE_MINUS_DST_COLOR,GL_ZERO)
