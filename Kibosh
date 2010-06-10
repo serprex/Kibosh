@@ -8,8 +8,6 @@ from math import *
 from select import select
 from itertools import count,chain,cycle
 from random import getrandbits
-from time import time,sleep
-from sys import argv
 from collections import defaultdict
 try:
 	range=xrange
@@ -23,11 +21,9 @@ pi63v=0,pi13,pi23,pi33,pi43,pi53,pi63
 def pi1v(x,v=[a%pi21 for a in range(377)]):return v[x%377]
 def sin1(x,v=list(map(sin,range(377)))):return v[x%377]
 def cos1(x,v=list(map(cos,range(377)))):return v[x%377]
-pyglet.clock.set_fps_limit(30)
 GLF3=GLfloat*3
 Red,Blu,Gre=RGB=GLF3(1.,0.,0.),GLF3(0.,0.,1.),GLF3(0.,1.,0.)
-Blk=GLF3(0.,0.,0.)
-Wht=GLF3(1.,1.,1.)
+Blk,Wht,Blk=BWB=((GLF3(0.,0.,0.),GLF3(1.,1.,1.))*2)[:3]
 def ptdir(x,y,m):
 	x%=pi21
 	y%=pi21
@@ -45,7 +41,7 @@ def atch():
 	global E
 	send(chr(0xE2|(E==39)))
 	E+=1
-	if E==40:
+	if E==16:
 		Nut(N1,0)
 		E=0
 def near(x,y):return min(chain((((a.x-x)**2+(a.y-y)**2,a,a is N1) for a in NN),((((a[1][-1][0]-x)**2+(a[1][-1][1]-y)**2,a,a[2]) for a in N if a[0] is not None))))
@@ -57,7 +53,7 @@ def on_key(k,o):
 	if 65360<k<65365:
 		N1.awds[k-65361]=o
 		send("%c%c%c"%(0xF0|N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3,N1.x>>1,N1.y>>1))
-	elif k==65307:W.has_exit=1
+	elif k==65307:pyglet.app.exit()
 X0=Y0=Z0=.5
 Nap=T=E=pause=hit=hit2=0
 life=3
@@ -94,41 +90,6 @@ class F:
 	def __call__(s,x):
 		s._F[s.f()&4095]=x
 		return x
-F=F()
-Fd=set()
-W=pyglet.window.Window(320,512,visible=False)
-W.on_key_press=lambda k,m:on_key(k,1)
-W.on_key_release=lambda k,m:on_key(k,0)
-glEnable(GL_BLEND)
-tcp=socket(AF_INET,SOCK_STREAM)
-tcp.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
-tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
-blue=getrandbits(1)
-hopo="",2000
-L="Kikiki"
-H=1
-for a in chain(open("K.txt"),argv[1:]):
-	if not a or a[0]=="#":continue
-	elif ":" in a:hopo=(a[:a.find(":")] or hopo[0] if a.find("::")==-1 else ""),int(a[a.rfind(":")+1:] or hopo[1])
-	elif "." in a:hopo=a,hopo[1]
-	elif a.isdigit():hopo=hopo[0],int(a)
-	elif a[0] in "br":blue=a[0]=="b"
-	elif a[0]=="H":H=min(max(int(a[1:]),1),4)
-	elif a[0]=="L":L=a[1:]
-if hopo[0]:
-	tcp.connect(hopo)
-	L=ord(tcp.recv(1))
-	blue=not L&1
-	H=(L>>1)+1
-	L=tcp.recv(ord(tcp.recv(1))|(L&0xF8)<<5)
-else:
-	tcp.bind(hopo)
-	tcp.listen(1)
-	tcp=tcp.accept()[0]
-	tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
-	tcp.send("%c%c%s"%(blue|H-1<<1|(len(L)&0x1F00)>>5,len(L)&255,L))
-recv=tcp.recv
-send=tcp.send
 class Cannon:
 	die=lambda s:not Fd.add(Cannond(s))
 	def __init__(s,p,x,y,d,v,t,D=None,V=3):
@@ -146,7 +107,7 @@ class Cannon:
 		s.x+=s.h
 		s.y+=s.v
 		s.d+=ptdir(s.d,atan2(Y0-s.y,X0-s.x),pi19)
-		if not(-32<s.x<352 and -32<s.y<544):return 1
+		if not(-32<s.x<352 and -32<s.y<544):return send
 		a=near(s.x,s.y)
 		if a[0]<400 and a[2]:
 			if a[1] is N1 and N1.p==s.p:Nut()
@@ -207,7 +168,7 @@ class CannonCannon:
 			if not T&15:F(Cannon(s.p,s.x,s.y,pi32,8,6))
 		else:
 			s.l-=2
-			for a in range(8):Bul(2,s.x,s.y,pi28*a+T,8)
+			for a in range(8):Bul(2,s.x,s.y,pi28*a,8)
 			if s.l==-80:return 1
 		ct=cos1(T)
 		st=sin1(T)
@@ -236,7 +197,7 @@ class Gattle:
 		s.y+=s.v
 		s.d+=pi19/s.t
 		s.T+=1
-		if not(-32<s.x<352 and -32<s.y<544):return 1
+		if not(-32<s.x<352 and -32<s.y<544):return send
 		a=near(s.x,s.y)
 		if a[0]<400 and a[2]:
 			if a[1] is N1 and N1.p==s.p:Nut()
@@ -324,14 +285,14 @@ class Laser(object):
 			else:atch()
 		v=sin(s.t)
 		h=cos(s.t)
-		s.l+=20 if -40<s.x+s.l*h<340 and -40<s.y+s.l*v<552 else -20
+		s.l+=20 if -40.<s.x+s.l*h<340. and -40.<s.y+s.l*v<552. else -20
 		sd=s.d()
 		glBegin(GL_TRIANGLES)
 		for a in range(0,s.l,3):
 			c=cos1(a)+sd
 			ha=s.x+h*a-c*8.
 			va=s.y+v*a-c*8.
-			if a&3<2:glColor3fv(RGB[s.p] if not a&3 else Wht if s.p==1 else Blk)
+			if a&3<2:glColor3fv((BWB if a&3 else RGB)[s.p])
 			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
 			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
 			glVertex2f(ha+c*getrandbits(4),va+c*getrandbits(4))
@@ -366,7 +327,9 @@ class LaserC:
 		L.y=s.y=s.y+s.v
 		s.T+=1
 		if s.a:L.t+=ptdir(L.t,atan2(Y0-s.y,X0-s.x),pi/s.a)
-		if not(-32<L.x<352 and -32<L.y<544):return L.die()
+		if not(-32<L.x<352 and -32<L.y<544):
+			L.die()
+			return send
 		a=near(L.x,L.y)
 		if a[0]<400 and a[2] and a[1] is N1:
 			if L.p==N1.p:Nut()
@@ -394,7 +357,43 @@ class LaserCd(LaserC):
 		s.r-=1
 		s.T+=1
 		return not s.r or s.draw(cos1(s.T)*s.r,sin1(s.T)*s.r)
-NN=N1,N2=(Node(80,256,0),Node(240,256,1))[::1-(blue<<1)]
+F=F()
+Fd=set()
+W=pyglet.window.Window(320,512,visible=False)
+W.on_key_press=lambda k,m:on_key(k,1)
+W.on_key_release=lambda k,m:on_key(k,0)
+W.idle=W.dispatch_events
+glEnable(GL_BLEND)
+tcp=socket(AF_INET,SOCK_STREAM)
+tcp.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
+tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
+blue=getrandbits(1)
+hopo="",2000
+L="Kikiki"
+H=1
+for a in chain(open("K.txt"),__import__("sys").argv[1:]):
+	if not a or a[0]=="#":continue
+	elif ":" in a:hopo=(a[:a.find(":")] or hopo[0] if a.find("::")==-1 else ""),int(a[a.rfind(":")+1:] or hopo[1])
+	elif "." in a:hopo=a,hopo[1]
+	elif a.isdigit():hopo=hopo[0],int(a)
+	elif a[0] in "br":blue=a[0]=="b"
+	elif a[0]=="H":H=min(max(int(a[1:]),1),4)
+	elif a[0]=="L":L=a[1:]
+if hopo[0]:
+	tcp.connect(hopo)
+	L=ord(tcp.recv(1))
+	blue=not L&1
+	H=(L>>1)+1
+	L=tcp.recv(ord(tcp.recv(1))|(L&0xF8)<<5)
+else:
+	tcp.bind(hopo)
+	tcp.listen(1)
+	tcp=tcp.accept()[0]
+	tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
+	tcp.send("%c%c%s"%(blue|H-1<<1|(len(L)&0x1F00)>>5,len(L)&255,L))
+recv=tcp.recv
+send=tcp.send
+N1,N2=NN=(Node(80,256,0),Node(240,256,1))[::1-(blue<<1)]
 ND=defaultdict(lambda:None,{0.:N1,1.:N2})
 def Nut(s=N1,x=1):
 	global N,Nap
@@ -407,11 +406,9 @@ Time=L.Time
 Back=L.Back
 W.set_visible(True)
 W.set_location(200+321*blue,50)
-recv(send(" "))
-if blue:recv(send(" "))
-else:sleep((time()-(send(recv(1)),time())[1])/-2)
-while not W.has_exit:
-	W.dispatch_events()
+def draw(dt):
+	global T,X0,Y0,Z0,hit,hit2,E,N,B,Nap
+	W.clear()
 	if T in Time:Time[T]()
 	Back(T,1-Z0 if blue else Z0)
 	N1.move()
@@ -488,7 +485,7 @@ while not W.has_exit:
 		glVertex2f(b[1],b[2]+7.)
 		glVertex2f(b[1]-7.,b[2])
 		glVertex2f(b[1],b[2]-7.)
-		glColor3fv(Wht if b[0]==1 else Blk)
+		glColor3fv(BWB[b[0]])
 		glVertex2f(b[1]+4.,b[2])
 		glVertex2f(b[1],b[2]+4.)
 		glVertex2f(b[1]-4.,b[2])
@@ -508,9 +505,11 @@ while not W.has_exit:
 	F.F.update(F._F)
 	F._F.clear()
 	for r in F:
-		if F[r]():
-			send("%c%c"%((0xB0 if Nap else 0xD0)|(r&15),r>>4))
-			Nap=0
+		a=F[r]()
+		if a:
+			if a is not send:
+				send("%c%c"%((0xB0 if Nap else 0xD0)|(r&15),r>>4))
+				Nap=0
 			del F[r]
 	Fd.difference_update([r for r in Fd if r()])
 	glBlendFunc(GL_ONE_MINUS_DST_COLOR,GL_ZERO)
@@ -544,9 +543,9 @@ while not W.has_exit:
 			glVertex2f(x+c*(getrandbits(5)-16),y+c*(getrandbits(5)-16))
 	del N[:r]
 	glEnd()
-	glRecti(0,512,E<<3,504)
-	W.flip()
-	glClear(GL_COLOR_BUFFER_BIT)
+	glRecti(0,512,E*20,504)
 	T+=1
-	pyglet.clock.tick()
+	return W.flip()
+pyglet.clock.schedule_interval(draw,1/30)
+pyglet.app.run()
 send("\xEF")
