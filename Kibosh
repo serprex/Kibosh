@@ -25,8 +25,9 @@ def sin1(x,v=list(map(sin,range(377)))):return v[x%377]
 def cos1(x,v=list(map(cos,range(377)))):return v[x%377]
 pyglet.clock.set_fps_limit(30)
 GLF3=GLfloat*3
-GLF4=GLfloat*4
-Red,Blu,Gre,Wht,Blk=RGB=GLF3(1.,0.,0.),GLF3(0.,0.,1.),GLF3(0.,1.,0.),GLF3(1.,1.,1.),GLF3(0.,0.,0.)
+Red,Blu,Gre=RGB=GLF3(1.,0.,0.),GLF3(0.,0.,1.),GLF3(0.,1.,0.)
+Blk=GLF3(0.,0.,0.)
+Wht=GLF3(1.,1.,1.)
 def ptdir(x,y,m):
 	x%=pi21
 	y%=pi21
@@ -58,12 +59,28 @@ def on_key(k,o):
 		send("%c%c%c"%(0xF0|N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3,N1.x>>1,N1.y>>1))
 	elif k==65307:W.has_exit=1
 X0=Y0=Z0=.5
-T=E=pause=hit=hit2=0
+Nap=T=E=pause=hit=hit2=0
 life=3
 B=[]
 Bad=B.append
 N=[]
 M={}
+class Node:
+	def __init__(s,*x):
+		s.x,s.y,s.p=x
+		s.awds=[0,0,0,0]
+	def move(s):
+		if not hit:
+			if s.awds[2]-s.awds[0] and s.awds[1]-s.awds[3]:
+				s.x+=(s.awds[2]-s.awds[0]<<2)*3>>2
+				s.y+=(s.awds[1]-s.awds[3]<<2)*3>>2
+			else:
+				s.x+=s.awds[2]-s.awds[0]<<2
+				s.y+=s.awds[1]-s.awds[3]<<2
+			if s.x<0:s.x=0
+			elif s.x>320:s.x=320
+			if s.y<0:s.y=0
+			elif s.y>511:s.y=511
 class F:
 	def __init__(s):
 		s.F={}
@@ -104,33 +121,14 @@ if hopo[0]:
 	blue=not L&1
 	H=(L>>1)+1
 	L=tcp.recv(ord(tcp.recv(1))|(L&0xF8)<<5)
-	tcp.send(" ")
-	tcp.recv(1)
 else:
 	tcp.bind(hopo)
 	tcp.listen(1)
 	tcp=tcp.accept()[0]
 	tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
 	tcp.send("%c%c%s"%(blue|H-1<<1|(len(L)&0x1F00)>>5,len(L)&255,L))
-	sleep((time()-(tcp.send(tcp.recv(1)),time())[1])/-2)
 recv=tcp.recv
 send=tcp.send
-class Node:
-	def __init__(s,*x):
-		s.x,s.y,s.p=x
-		s.awds=[0,0,0,0]
-	def move(s):
-		if not hit:
-			if s.awds[2]-s.awds[0] and s.awds[1]-s.awds[3]:
-				s.x+=(s.awds[2]-s.awds[0]<<2)*3>>2
-				s.y+=(s.awds[1]-s.awds[3]<<2)*3>>2
-			else:
-				s.x+=s.awds[2]-s.awds[0]<<2
-				s.y+=s.awds[1]-s.awds[3]<<2
-			if s.x<0:s.x=0
-			elif s.x>320:s.x=320
-			if s.y<0:s.y=0
-			elif s.y>511:s.y=511
 class Cannon:
 	die=lambda s:not Fd.add(Cannond(s))
 	def __init__(s,p,x,y,d,v,t,D=None,V=3):
@@ -409,6 +407,9 @@ Time=L.Time
 Back=L.Back
 W.set_visible(True)
 W.set_location(200+321*blue,50)
+recv(send(" "))
+if blue:recv(send(" "))
+else:sleep((time()-(send(recv(1)),time())[1])/-2)
 while not W.has_exit:
 	W.dispatch_events()
 	if T in Time:Time[T]()
@@ -506,13 +507,10 @@ while not W.has_exit:
 		if r in F.F:del F.F[r]
 	F.F.update(F._F)
 	F._F.clear()
-	Nap=0
 	for r in F:
 		if F[r]():
-			if Nap:
-				send("%c%c"%(0xB0|(r&15),r>>4))
-				Nap=0
-			else:send("%c%c"%(0xD0|(r&15),r>>4))
+			send("%c%c"%((0xB0 if Nap else 0xD0)|(r&15),r>>4))
+			Nap=0
 			del F[r]
 	Fd.difference_update([r for r in Fd if r()])
 	glBlendFunc(GL_ONE_MINUS_DST_COLOR,GL_ZERO)
@@ -520,7 +518,12 @@ while not W.has_exit:
 	glColor3fv(Wht)
 	r=0
 	for a in N:
-		if a[0] is not None:
+		if a[0] is None:
+			del a[1][0]
+			if not a[1]:
+				r+=1
+				break
+		else:
 			if F:
 				x=y=0
 				for c in F:
@@ -532,15 +535,13 @@ while not W.has_exit:
 				a[0]+=ptdir(a[0],atan2(y,x),pi18)
 			a[1]+=(a[1][-1][0]+cos(a[0])*12.,a[1][-1][1]+sin(a[0])*12.),
 			if len(a[1])==45:a[0]=None
-		else:
-			del a[1][0]
-			if not a[1]:r+=1
-		d=len(a[1])
-		for c,b in enumerate(a[1]):
-			c/=d
-			glVertex2f(b[0]+c*(getrandbits(5)-16),b[1]+c*(getrandbits(5)-16))
-			glVertex2f(b[0]+c*(getrandbits(5)-16),b[1]+c*(getrandbits(5)-16))
-			glVertex2f(b[0]+c*(getrandbits(5)-16),b[1]+c*(getrandbits(5)-16))
+		d=1./len(a[1])
+		c=0.
+		for x,y in a[1]:
+			c+=d
+			glVertex2f(x+c*(getrandbits(5)-16),y+c*(getrandbits(5)-16))
+			glVertex2f(x+c*(getrandbits(5)-16),y+c*(getrandbits(5)-16))
+			glVertex2f(x+c*(getrandbits(5)-16),y+c*(getrandbits(5)-16))
 	del N[:r]
 	glEnd()
 	glRecti(0,512,E<<3,504)
