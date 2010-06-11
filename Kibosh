@@ -36,9 +36,9 @@ def miss():
 		life-=1
 def atch():
 	global E
-	send(chr(0xE2|(E==15)))
+	send(chr(0xE2|(E==14)))
 	E+=1
-	if E==16:
+	if E==15:
 		Nut(N1,0)
 		E=0
 def near(x,y):return min(chain((((a.x-x)**2+(a.y-y)**2,a,a is N1) for a in NN),((((a[1][-1][0]-x)**2+(a[1][-1][1]-y)**2,a,a[2]) for a in N if a[0] is not None))))
@@ -57,21 +57,21 @@ W.idle=W.dispatch_events
 glEnable(GL_BLEND)
 X0=Y0=Z0=.5
 Nap=T=Tlc=E=hit=hit2=0
-Tl=[]
 life=3
+M={}
+Tl=[]
+N=[]
 B=[]
 Bad=B.append
-N=[]
-M={}
 class Node:
 	def __init__(s,*x):
 		s.x,s.y,s.p=x
 		s.awds=[0,0,0,0]
 	def move(s):
 		if not hit:
-			if s.awds[2]-s.awds[0] and s.awds[1]-s.awds[3]:
-				s.x+=(s.awds[2]-s.awds[0]<<2)*3>>2
-				s.y+=(s.awds[1]-s.awds[3]<<2)*3>>2
+			if s.awds[2]!=s.awds[0] and s.awds[1]!=s.awds[3]:
+				s.x+=(s.awds[2]-s.awds[0])*3
+				s.y+=(s.awds[1]-s.awds[3])*3
 			else:
 				s.x+=s.awds[2]-s.awds[0]<<2
 				s.y+=s.awds[1]-s.awds[3]<<2
@@ -251,8 +251,8 @@ class Complement:
 			s.l<<=1
 			if s.l==16:s.s=3
 		if s.s<2:
-			s.y+=(16,-2)[s.s]
-			s.s+=s.y==(640,444)[s.s]
+			s.y+=-2 if s.s else 16
+			s.s+=s.y==(444 if s.s else 640)
 		elif s.s==2:
 			s.d+=pi/30
 			a=near(s.x,s.y)
@@ -279,7 +279,7 @@ class Laser(object):
 		s.d=getnext(cycle(sin(pi19*a) for a in range(18)))
 		s.l=0
 		s.V=pyglet.graphics.vertex_list(1,"v2f/stream","c3B")
-		s.Vs=1
+		s.Vs=0
 	def __call__(s):
 		v=((s.x-N1.x)**2+(s.y-N1.y)**2)**.5
 		if not Z0 and v<s.l and sin(abs(atan2(s.y-N1.y,s.x-N1.x)-s.t))*v<9:
@@ -293,7 +293,7 @@ class Laser(object):
 		if s.l<0:return
 		Vs=s.Vs
 		s.Vs=3+s.l-s.l%3
-		s.V.resize(1+s.Vs)
+		s.V.resize(s.Vs)
 		for a in range(Vs,s.Vs,3):s.V.colors[a*3:a*3+9]=tuple((RGB if a&3 else BWB)[s.p])*3
 		sd=s.d()
 		for a in range(0,s.l,3):
@@ -374,7 +374,7 @@ hopo="",2000
 L="Kikiki"
 H=1
 for a in chain(open("K.txt"),__import__("sys").argv[1:]):
-	if not a or a[0]=="#":continue
+	if a in "#":continue
 	elif ":" in a:hopo=(a[:a.find(":")] or hopo[0] if a.find("::")==-1 else ""),int(a[a.rfind(":")+1:] or hopo[1])
 	elif "." in a:hopo=a,hopo[1]
 	elif a.isdigit():hopo=hopo[0],int(a)
@@ -425,10 +425,7 @@ def draw(t):
 			N2.x=ord(recv(1))<<1
 			N2.y=ord(recv(1))<<1
 		elif r&0xF0==0xD0 or (r&0xF0==0xB0 and not N.append([pi12,[(N2.x,N2.y)],0])):
-			r=(r&15)|ord(recv(1))<<4
-			if r in F:
-				F[r].die()
-				del F.F[r]
+			getattr(F.F.pop((r&15)|ord(recv(1))<<4,None),"die",lambda:None)()
 		elif r&0xF0==0xC0:
 			a=recv(1)
 			M[a]="" if r==0xC0 else recv(r&15)
@@ -481,24 +478,25 @@ def draw(t):
 	glBlendFunc(GL_SRC_ALPHA,GL_ZERO)
 	glBegin(GL_QUADS)
 	for a,b in enumerate(reversed(B)):
-		glColor3ubv(RGB[b[0]])
-		glVertex2f(b[1]+3.,b[2])
-		glVertex2f(b[1],b[2]+3.)
-		glVertex2f(b[1]-3.,b[2])
-		glVertex2f(b[1],b[2]-3.)
-		b[1]+=b[3]
-		b[2]+=b[4]
-		glVertex2f(b[1]+7.,b[2])
-		glVertex2f(b[1],b[2]+7.)
-		glVertex2f(b[1]-7.,b[2])
-		glVertex2f(b[1],b[2]-7.)
-		glColor3ubv(BWB[b[0]])
-		glVertex2f(b[1]+4.,b[2])
-		glVertex2f(b[1],b[2]+4.)
-		glVertex2f(b[1]-4.,b[2])
-		glVertex2f(b[1],b[2]-4.)
-		if not(-12.<b[1]<372. and -12.<b[2]<524.) or (s and b[0]==s.p and (b[1]-s.x)**2+(b[2]-s.y)**2<400 and s==N1 and not atch()):del B[c()+~a]
-		elif (b[1]-X0)**2+(b[2]-Y0)**2<49. and Z0<=.5 and (Z0>.1 or b[0]!=blue):
+		r,x,y,v,h=b
+		glColor3ubv(RGB[r])
+		glVertex2f(x+3.,y)
+		glVertex2f(x,y+3.)
+		glVertex2f(x-3.,y)
+		glVertex2f(x,y-3.)
+		b[1]+=v
+		b[2]+=h
+		glVertex2f(x+7.,y)
+		glVertex2f(x,y+7.)
+		glVertex2f(x-7.,y)
+		glVertex2f(x,y-7.)
+		glColor3ubv(BWB[r])
+		glVertex2f(x+4.,y)
+		glVertex2f(x,y+4.)
+		glVertex2f(x-4.,y)
+		glVertex2f(x,y-4.)
+		if not(-12.<x<372. and -12.<y<524.) or (s and r==s.p and (x-s.x)**2+(y-s.y)**2<400 and s==N1 and not atch()):del B[c()+~a]
+		elif (x-X0)**2+(y-Y0)**2<49. and Z0<=.5 and r!=blue:
 			send("\xEE")
 			miss()
 			break
@@ -546,7 +544,7 @@ def draw(t):
 			glVertex2f(x+c*(getrandbits(5)-16),y+c*(getrandbits(5)-16))
 	del N[:r]
 	glEnd()
-	glRecti(0,512,E*20,504)
+	glRecti(0,512,E*24,504)
 	T+=1
 	return W.flip()
 pyglet.clock.schedule_interval(draw,1/30)
