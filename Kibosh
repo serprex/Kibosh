@@ -56,7 +56,8 @@ W.on_key_release=lambda k,m:on_key(k,0)
 W.idle=W.dispatch_events
 glEnable(GL_BLEND)
 X0=Y0=Z0=.5
-Nap=T=Tl=Tlc=E=hit=hit2=0
+Nap=T=Tlc=E=hit=hit2=0
+Tl=[]
 life=3
 B=[]
 Bad=B.append
@@ -146,8 +147,8 @@ class Cannond(Cannon):
 		s.r-=1
 		return not s.r or s.draw(s.r*1.5,cos1(T)*s.r,sin1(T)*s.r)
 class CannonCannon:
-	die=lambda s:1
 	def __init__(s,x):
+		Tl.append(s)
 		s.x=x
 		s.y=600
 		s.h=s.p=0
@@ -170,7 +171,7 @@ class CannonCannon:
 		else:
 			s.l-=2
 			for a in range(8):Bul(2,s.x,s.y,pi28*a,8)
-			if s.l==-80:return 1
+			if s.l==-80:return send
 		ct=cos1(T)*(80+s.l)
 		st=sin1(T)*(80+s.l)
 		glColor4ub(RGB[s.p][0],0,RGB[s.p][2],655-s.y)
@@ -234,8 +235,8 @@ class Gattled(Gattle):
 		s.r-=1
 		return not s.r or s.draw(s.r)
 class Complement:
-	die=lambda s:1
 	def __init__(s,x):
+		Tl.append(s)
 		s.p=2
 		s.x=x
 		s.y=-96
@@ -259,7 +260,7 @@ class Complement:
 			elif a[0]<999 and a[2] and a[1] is not N1:msg("O")
 		else:
 			s.e-=1.
-			if s.e==60.:return 1
+			if s.e==60.:return send
 		glColor3ubv(RGB[2])
 		glBegin(GL_LINE_LOOP)
 		for a in range(s.l):
@@ -407,11 +408,13 @@ Time=L.Time
 Back=L.Back
 W.set_visible(True)
 W.set_location(200+361*blue,50)
-T=1799
 def draw(t):
-	global T,Tlc,X0,Y0,Z0,hit,hit2,E,N,B,Bad,Nap
+	global T,Tl,Tlc,X0,Y0,Z0,hit,hit2,E,N,B,Bad,Nap
 	W.clear()
-	if Tl:Tlc+=1
+	if Tl:
+		Tlc+=1
+		r=set(F.F.itervalues())
+		Tl=[a for a in Tl if a in r]
 	elif T-Tlc in Time:Time[T-Tlc]()
 	Back(T,1-Z0 if blue else Z0)
 	N1.move()

@@ -22,10 +22,10 @@ for v in range(0,400,20):
 	Time[350+v]=lambda v=v:F(Cannon(0,-8,v,0,5,20))
 	Time[351+v]=lambda v=v:F(Cannon(2,368,v,pi,5,15,))
 Time[800]=lambda:F(CannonCannon(180))
-Time[1200]=lambda:F(Complement(180))
-for v in range(0,300,45):Time[v+1500]=lambda v=v:(F(Gattle((v%60)//30,0,400-v,piC6,6,8,6)),F(Gattle(1+(v%60)//30,320,400-v,piCA,6,10,5)))
-for v in range(0,300,60):Time[v+1800]=lambda:F(LaserC(0,-24+60,520,0,5,pi32))
-for v in range(0,300,60):Time[v+1830]=lambda:F(LaserC(1,-24+48,520,0,5,pi32))
+Time[810]=lambda:F(Complement(180))
+for v in range(0,300,45):Time[v+820]=lambda v=v:(F(Gattle((v%60)//30,0,400-v,piC6,6,8,6)),F(Gattle(1+(v%60)//30,320,400-v,piCA,6,10,5)))
+for v in range(0,300,60):Time[v+999]=lambda:F(LaserC(0,-24+60,520,0,5,pi32))
+for v in range(0,300,60):Time[v+1000]=lambda:F(LaserC(1,-24+48,520,0,5,pi32))
 """
 v=1111;v[1]=1;repeat(4){
 ds_grid_set_region(0,v,0,v+1,0,mis)
