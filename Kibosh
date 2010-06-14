@@ -281,8 +281,11 @@ class Laser(object):
 		s.V=pyglet.graphics.vertex_list(1,"v2f/stream","c3B")
 		s.Vs=0
 	def __call__(s):
-		v=((s.x-N1.x)**2+(s.y-N1.y)**2)**.5
-		if not Z0 and v<s.l and sin(abs(atan2(s.y-N1.y,s.x-N1.x)-s.t))*v<9:
+		ha=N1.x-s.x
+		va=N1.y-s.y
+		h=abs(atan2(v,h)-s.t)
+		v=(h**2+v**2)**.5
+		if not Z0 and v<s.l and sin(h)*v<9 and h<pi12 or h>pi32:
 			if s.p!=N1.p:
 				send("\xEE")
 				miss()
@@ -427,8 +430,8 @@ def draw(t):
 		elif r&0xF0==0xD0 or (r&0xF0==0xB0 and not N.append([pi12,[(N2.x,N2.y)],0])):
 			getattr(F.F.pop((r&15)|ord(recv(1))<<4,None),"die",lambda:None)()
 		elif r&0xF0==0xC0:
-			a=recv(1)
-			M[a]="" if r==0xC0 else recv(r&15)
+			a=recv(1+(r&15))
+			M[a[0]]=a[1:]
 		elif r==0xE2:E+=1
 		elif r==0xE3:
 			E=0
@@ -549,5 +552,6 @@ def draw(t):
 	return W.flip()
 pyglet.clock.schedule_interval(draw,1/30)
 recv(send(" "))
+T=1000
 pyglet.app.run()
 send("\xEF")
