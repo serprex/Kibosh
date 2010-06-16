@@ -36,7 +36,7 @@ def miss():
 		life-=1
 def atch():
 	global E
-	send(chr(0xE2|(E==14)))
+	send("\xE2\xE3"[E==14])
 	E+=1
 	if E==15:
 		Nut(N1,0)
@@ -67,18 +67,6 @@ class Node:
 	def __init__(s,*x):
 		s.x,s.y,s.p=x
 		s.awds=[0,0,0,0]
-	def move(s):
-		if not hit:
-			if s.awds[2]!=s.awds[0] and s.awds[1]!=s.awds[3]:
-				s.x+=(s.awds[2]-s.awds[0])*3
-				s.y+=(s.awds[1]-s.awds[3])*3
-			else:
-				s.x+=s.awds[2]-s.awds[0]<<2
-				s.y+=s.awds[1]-s.awds[3]<<2
-			if s.x<0:s.x=0
-			elif s.x>360:s.x=360
-			if s.y<0:s.y=0
-			elif s.y>511:s.y=511
 class F:
 	def __init__(s):
 		s.F={}
@@ -285,7 +273,7 @@ class Laser(object):
 		va=N1.y-s.y
 		h=abs(atan2(va,ha)-s.t)%pi21
 		v=(ha**2+va**2)**.5
-		if not Z0 and v<s.l and not pi12<h<pi23 and sin(h)*v<9:
+		if not(Z0 or pi12<h<pi23) and v<s.l and sin(h)*v<9:
 			if s.p!=N1.p:
 				send("\xEE")
 				miss()
@@ -419,7 +407,6 @@ def draw(t):
 		Tl=[a for a in Tl if a in r]
 	elif T-Tlc in Time:Time[T-Tlc]()
 	Back(T,1-Z0 if N1.p else Z0)
-	N1.move()
 	while select((tcp,),(),(),0)[0]:
 		r=ord(recv(1))
 		if r&0xF0==0xF0:
@@ -437,14 +424,6 @@ def draw(t):
 			N+=[pi12,[(N2.x,N2.y)],0],
 		elif r==0xEE:miss()
 		else:raise SystemExit("%.2X%s"%(r,recv(78)))
-	N2.move()
-	s=N1.y-N2.y
-	if s:
-		Z0+=s/((N1.x-N2.x)**2+s**2)**.5
-		if Z0<0.:Z0=0.
-		elif Z0>1.:Z0=1.
-	X0=N1.x+(N2.x-N1.x)*Z0
-	Y0=N1.y-s*Z0
 	if hit:
 		for s in NN:
 			s.x=180 if -16<s.x-180<16 else s.x-cmp(s.x,180)*12
@@ -452,9 +431,25 @@ def draw(t):
 		hit=not(256==N1.y==N2.y and 180==N1.x==N2.x)
 		B=[]
 		hit2=30
-	elif hit2:
-		hit2-=1
-		if not hit2:Bad=B.append
+	else:
+		for s in NN:
+			a=3+(s.awds[2]!=s.awds[0] and s.awds[1]!=s.awds[3])
+			s.x+=(s.awds[2]-s.awds[0])*a
+			s.y+=(s.awds[1]-s.awds[3])*a
+			if s.x<0:s.x=0
+			elif s.x>360:s.x=360
+			if s.y<0:s.y=0
+			elif s.y>511:s.y=511
+		if hit2:
+			hit2-=1
+			if not hit2:Bad=B.append
+	s=N1.y-N2.y
+	if s:
+		Z0+=s/((N1.x-N2.x)**2+s**2)**.5
+		if Z0<0.:Z0=0.
+		elif Z0>1.:Z0=1.
+	X0=N1.x+(N2.x-N1.x)*Z0
+	Y0=N1.y-s*Z0
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE)
 	glBegin(GL_LINES)
 	for s in NN:
