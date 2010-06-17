@@ -48,7 +48,7 @@ def msg(x,y=""):
 def on_key(k,o):
 	if 65360<k<65365:
 		N1.awds[k-65361]=o
-		send("%c%c%c"%(0xF0|N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3,N1.x>>1,N1.y>>1))
+		usend("%c%c%c"%(N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3|N1.x&1<<4|N1.y&1<<5,N1.x>>1,N1.y>>1))
 	elif k==65307:app.exit()
 W=window.Window(360,512,visible=False,vsync=False)
 W.on_key_press=lambda k,m:on_key(k,1)
@@ -236,7 +236,7 @@ class Complement:
 			sa=sin(s.d+pi21*a/s.l)*s.e
 			if T&3 and T%7 and s.s<3:Bad([getattr(ND[1.-Z0],"p",2),s.x+ca*99.,s.y+sa*99.,ca*8.,sa*8.])
 			for a in range(9,99,3):glVertex2f(s.x+ca*a+getrandbits(3)-4,s.y+sa*a+getrandbits(3)-4)
-		return glEnd()
+		glEnd()
 class Laser(object):
 	die=lambda s:not Fd.add(Laserd(s))
 	def __init__(s,p,x,y,d):
@@ -253,7 +253,7 @@ class Laser(object):
 		va=N1.y-s.y
 		h=abs(atan2(va,ha)-s.t)%pi21
 		v=(ha**2+va**2)**.5
-		if not(Z0 or pi12<h<pi23) and v<s.l and sin(h)*v<9:
+		if not Z0 and h<pi12 and v<s.l and sin(h)*v<9:
 			if s.p!=N1.p:
 				send("\xEE")
 				miss()
@@ -313,7 +313,7 @@ class LaserC:
 			Nut()
 			return s.die()
 		L()
-		return s.draw(cos1(s.T)*16.,sin1(s.T)*16.)
+		s.draw(cos1(s.T)*16.,sin1(s.T)*16.)
 	def draw(s,ct,st):
 		a="v2f",(s.x+ct,s.y+st,s.x-st,s.y+ct,s.x-ct,s.y-st,s.x+st,s.y-ct)
 		glColor3ubv(s.p)
@@ -333,6 +333,8 @@ class LaserCd(LaserC):
 		return not s.r or s.draw(cos1(s.T)*s.r,sin1(s.T)*s.r)
 F=F()
 Fd=set()
+udp=socket(AF_INET,SOCK_DGRAM)
+udp.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
 tcp=socket(AF_INET,SOCK_STREAM)
 tcp.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
 tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
@@ -340,6 +342,7 @@ N1,N2=NN=(Node(120,256,0),Node(240,256,1))[::1-(getrandbits(1)<<1)]
 hopo="",2000
 L="Kikiki"
 H=1
+U=None
 for a in chain(open("K.txt"),__import__("sys").argv[1:]):
 	if a in "#":continue
 	elif ":" in a:hopo=(a[:a.find(":")] or hopo[0] if a.find("::")==-1 else ""),int(a[a.rfind(":")+1:] or hopo[1])
@@ -348,20 +351,27 @@ for a in chain(open("K.txt"),__import__("sys").argv[1:]):
 	elif a[0] in "br":N1,N2=NN=(N1,N2)[::1-(((a[0]=="b")!=N1.p)<<1)]
 	elif a[0]=="H":H=min(max(int(a[1:]),1),4)
 	elif a[0]=="L":L=a[1:]
+	elif a[0]=="U":U=int(a[1:])
 if hopo[0]:
 	tcp.connect(hopo)
 	L=ord(tcp.recv(1))
 	N1,N2=NN=(N1,N2)[::1-((L>>7==N1.p)<<1)]
 	H=(L>>5&3)+1
 	L=tcp.recv(L&63)
+	if U:udp.bind(("",U))
+	udp.sendto("",hopo)
 else:
 	tcp.bind(hopo)
+	udp.bind(hopo)
 	tcp.listen(1)
 	tcp=tcp.accept()[0]
 	tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
 	tcp.send("%c%s"%(N1.p<<7|H-1<<5|len(L),L))
+	hopo=udp.recvfrom(0)[1]
 recv=tcp.recv
 send=tcp.send
+urecv=lambda:udp.recv(65535)
+usend=lambda x:udp.sendto(x,hopo)
 ND=defaultdict(lambda:None,{0.:N1,1.:N2})
 def Nut(s=N1,x=1):
 	global N,Nap
@@ -385,11 +395,7 @@ def draw(t):
 	Back(T,1-Z0 if N1.p else Z0)
 	while select((tcp,),(),(),0)[0]:
 		r=ord(recv(1))
-		if r&0xF0==0xF0:
-			N2.awds=r&1,r>>1&1,r>>2&1,r>>3&1
-			N2.x=ord(recv(1))<<1
-			N2.y=ord(recv(1))<<1
-		elif r&0xF0==0xD0 or r&0xF0==0xB0 and not N.append([pi12,[(N2.x,N2.y)],0]):
+		if r&0xF0==0xD0 or r&0xF0==0xB0 and not N.append([pi12,[(N2.x,N2.y)],0]):
 			getattr(F.F.pop(r&15|ord(recv(1))<<4,None),"die",lambda:None)()
 		elif r&0xF0==0xC0:
 			a=recv(1+(r&15))
@@ -400,6 +406,11 @@ def draw(t):
 			N+=[pi12,[(N2.x,N2.y)],0],
 		elif r==0xEE:miss()
 		else:raise SystemExit("%.2X%s"%(r,recv(78)))
+	while select((udp,),(),(),0)[0]:
+		a,b,c=map(ord,urecv())
+		N2.awds=a&1,a>>1&1,a>>2&1,a>>3&1
+		N2.x=b<<1|a>>4&1
+		N2.y=c<<1|a>>5&1
 	if hit:
 		for s in NN:
 			s.x=180 if -16<s.x-180<16 else s.x-cmp(s.x,180)*12
