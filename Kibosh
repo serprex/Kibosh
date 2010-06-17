@@ -107,23 +107,16 @@ class Cannon:
 		if not s.T%s.t:Bul(s.p,s.x+ct,s.y+st,s.d,s.V)
 		return s.draw(24.,ct,st)
 	def draw(s,r,ct,st):
+		a="v2f",(s.x+ct,s.y+st,s.x-st,s.y+ct,s.x-ct,s.y-st,s.x+st,s.y-ct)
 		glColor3ubv(RGB[s.p])
-		for a in GL_QUADS,GL_LINE_LOOP:
-			glBegin(a)
-			glVertex2f(s.x+ct,s.y+st)
-			glVertex2f(s.x-st,s.y+ct)
-			glVertex2f(s.x-ct,s.y-st)
-			glVertex2f(s.x+st,s.y-ct)
-			glEnd()
-			glColor3ubv(Wht)
+		graphics.draw(4,GL_QUADS,a)
+		glColor3ubv(Wht)
+		graphics.draw(4,GL_LINE_LOOP,a)
+		a="v2f",(s.x,s.y,s.x+r*cos(s.d-pi16),s.y+r*sin(s.d-pi16),s.x+r*cos(s.d+pi16),s.y+r*sin(s.d+pi16))
 		glColor3ubv(RGB[s.p])
-		for a in GL_TRIANGLES,GL_LINE_LOOP:
-			glBegin(a)
-			glVertex2f(s.x,s.y)
-			glVertex2f(s.x+r*cos(s.d-pi16),s.y+r*sin(s.d-pi16))
-			glVertex2f(s.x+r*cos(s.d+pi16),s.y+r*sin(s.d+pi16))
-			glEnd()
-			glColor3ubv(Wht)
+		graphics.draw(3,GL_TRIANGLES,a)
+		glColor3ubv(Wht)
+		graphics.draw(3,GL_LINE_LOOP,a)
 class Cannond(Cannon):
 	def __init__(s,z):
 		s.x=z.x
@@ -162,15 +155,11 @@ class CannonCannon:
 			if s.l==-80:return send
 		ct=cos1(T)*(80+s.l)
 		st=sin1(T)*(80+s.l)
+		a="v2f",(s.x+ct,s.y+st,s.x-st,s.y+ct,s.x-ct,s.y-st,s.x+st,s.y-ct)
 		glColor4ub(RGB[s.p][0],0,RGB[s.p][2],655-s.y)
-		for a in GL_QUADS,GL_LINE_LOOP:
-			glBegin(a)
-			glVertex2f(s.x+ct,s.y+st)
-			glVertex2f(s.x-st,s.y+ct)
-			glVertex2f(s.x-ct,s.y-st)
-			glVertex2f(s.x+st,s.y-ct)
-			glEnd()
-			glColor3ubv(Wht)
+		graphics.draw(4,GL_QUADS,a)
+		glColor3ubv(Wht)
+		graphics.draw(4,GL_LINE_LOOP,a)
 class Gattle:
 	die=lambda s:not Fd.add(Gattled(s))
 	def __init__(s,p,x,y,d,v,t,V=4):
@@ -198,20 +187,11 @@ class Gattle:
 			Bul(s.p,s.x,s.y,s.d-pi23,s.V)
 		return s.draw(24.)
 	def draw(s,r):
+		a="v2f",(s.x,s.y,s.x+r*cos(s.d-pi16),s.y+r*sin(s.d-pi16),s.x+r*cos(s.d+pi16),s.y+r*sin(s.d+pi16),s.x,s.y,s.x+r*cos(s.d+pi36),s.y+r*sin(s.d+pi36),s.x+r*cos(s.d+pi56),s.y+r*sin(s.d+pi56),s.x,s.y,s.x+r*cos(s.d-pi36),s.y+r*sin(s.d-pi36),s.x+r*cos(s.d-pi56),s.y+r*sin(s.d-pi56))
 		glColor3ubv(RGB[s.p])
-		for a in GL_TRIANGLES,GL_LINE_LOOP:
-			glBegin(a)
-			glVertex2f(s.x,s.y)
-			glVertex2f(s.x+r*cos(s.d-pi16),s.y+r*sin(s.d-pi16))
-			glVertex2f(s.x+r*cos(s.d+pi16),s.y+r*sin(s.d+pi16))
-			glVertex2f(s.x,s.y)
-			glVertex2f(s.x+r*cos(s.d+pi36),s.y+r*sin(s.d+pi36))
-			glVertex2f(s.x+r*cos(s.d+pi56),s.y+r*sin(s.d+pi56))
-			glVertex2f(s.x,s.y)
-			glVertex2f(s.x+r*cos(s.d-pi56),s.y+r*sin(s.d-pi56))
-			glVertex2f(s.x+r*cos(s.d-pi36),s.y+r*sin(s.d-pi36))
-			glEnd()
-			glColor3ubv(Wht)
+		graphics.draw(9,GL_TRIANGLES,a)
+		glColor3ubv(Wht)
+		graphics.draw(9,GL_LINE_LOOP,a)
 class Gattled(Gattle):
 	def __init__(s,z):
 		s.p=z.p
@@ -335,15 +315,11 @@ class LaserC:
 		L()
 		return s.draw(cos1(s.T)*16.,sin1(s.T)*16.)
 	def draw(s,ct,st):
+		a="v2f",(s.x+ct,s.y+st,s.x-st,s.y+ct,s.x-ct,s.y-st,s.x+st,s.y-ct)
 		glColor3ubv(s.p)
-		for a in GL_QUADS,GL_LINE_LOOP:
-			glBegin(a)
-			glVertex2f(s.x+ct,s.y+st)
-			glVertex2f(s.x-st,s.y+ct)
-			glVertex2f(s.x-ct,s.y-st)
-			glVertex2f(s.x+st,s.y-ct)
-			glEnd()
-			glColor3ubv(Wht)
+		graphics.draw(4,GL_QUADS,a)
+		glColor3ubv(Wht)
+		graphics.draw(4,GL_LINE_LOOP,a)
 class LaserCd(LaserC):
 	def __init__(s,z):
 		s.x=z.l.x
@@ -413,8 +389,8 @@ def draw(t):
 			N2.awds=r&1,r>>1&1,r>>2&1,r>>3&1
 			N2.x=ord(recv(1))<<1
 			N2.y=ord(recv(1))<<1
-		elif r&0xF0==0xD0 or (r&0xF0==0xB0 and not N.append([pi12,[(N2.x,N2.y)],0])):
-			getattr(F.F.pop((r&15)|ord(recv(1))<<4,None),"die",lambda:None)()
+		elif r&0xF0==0xD0 or r&0xF0==0xB0 and not N.append([pi12,[(N2.x,N2.y)],0]):
+			getattr(F.F.pop(r&15|ord(recv(1))<<4,None),"die",lambda:None)()
 		elif r&0xF0==0xC0:
 			a=recv(1+(r&15))
 			M[a[0]]=a[1:]
@@ -433,7 +409,7 @@ def draw(t):
 		hit2=30
 	else:
 		for s in NN:
-			a=3+(s.awds[2]!=s.awds[0] and s.awds[1]!=s.awds[3])
+			a=4-(s.awds[2]!=s.awds[0] and s.awds[1]!=s.awds[3])
 			s.x+=(s.awds[2]-s.awds[0])*a
 			s.y+=(s.awds[1]-s.awds[3])*a
 			if s.x<0:s.x=0
@@ -451,11 +427,7 @@ def draw(t):
 	X0=N1.x+(N2.x-N1.x)*Z0
 	Y0=N1.y-s*Z0
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE)
-	glBegin(GL_LINES)
-	for s in NN:
-		glColor3ubv(RGB[s.p])
-		glVertex2i(s.x,s.y)
-	glEnd()
+	graphics.draw(2,GL_LINES,("v2f",(N1.x,N1.y,N2.x,N2.y)),("c3B",tuple(RGB[N1.p])+tuple(RGB[N2.p])))
 	for s in NN:
 		glBegin(GL_TRIANGLE_FAN)
 		glColor3ubv(Blk)
@@ -469,31 +441,24 @@ def draw(t):
 	glColor4ub(0,0,0,0)
 	for a in pi63v:glVertex2f(X0+cos(a)*12.,Y0+sin(a)*12.)
 	glEnd()
-	r=[]
+	d=[]
+	g=[]
 	s=ND[Z0]
 	c=getnext(count())
 	glBlendFunc(GL_SRC_ALPHA,GL_ZERO)
-	glBegin(GL_QUADS)
 	for a,b in enumerate(reversed(B)):
 		b[1]+=b[3]
 		b[2]+=b[4]
 		r,x,y,v,h=b
-		glColor3ubv(RGB[r])
-		glVertex2f(x+7.,y)
-		glVertex2f(x,y+7.)
-		glVertex2f(x-7.,y)
-		glVertex2f(x,y-7.)
-		glColor3ubv(BWB[r])
-		glVertex2f(x+4.,y)
-		glVertex2f(x,y+4.)
-		glVertex2f(x-4.,y)
-		glVertex2f(x,y-4.)
-		if not(-12.<x<372. and -12.<y<524.) or (s and r==s.p and (x-s.x)**2+(y-s.y)**2<400 and s==N1 and not atch()):del B[c()+~a]
+		if not(-12.<x<372. and -12.<y<524.) or s and r==s.p and (x-s.x)**2+(y-s.y)**2<400 and s==N1 and not atch():del B[c()+~a]
 		elif (x-X0)**2+(y-Y0)**2<49. and Z0<=.5 and r!=N1.p:
 			send("\xEE")
 			miss()
 			break
-	glEnd()
+		else:
+			d+=tuple(RGB[r])*4+tuple(BWB[r])*4
+			g+=x+7.,y,x,y+7.,x-7.,y,x,y-7.,x+4.,y,x,y+4.,x-4.,y,x,y-4.
+	graphics.draw(len(g)>>1,GL_QUADS,("v2f",g),("c3B",d))
 	for r in F.R:
 		if r in F.F:del F.F[r]
 	F.F.update(F._F)
@@ -502,7 +467,7 @@ def draw(t):
 		a=F[r]()
 		if a:
 			if a is not send:
-				send("%c%c"%((0xB0 if Nap else 0xD0)|(r&15),r>>4))
+				send("%c%c"%((0xB0 if Nap else 0xD0)|r&15,r>>4))
 				Nap=0
 			del F[r]
 	Fd.difference_update([r for r in Fd if r()])
