@@ -13,9 +13,7 @@ try:
 	range=xrange
 	from itertools import imap as map,izip as zip,ifilter as filter
 	getnext=lambda x:x.next
-except:
-	cmp=lambda x,y:(x>y)or-(x<y)
-	getnext=lambda x:x.__next__
+except:getnext=lambda x:x.__next__
 for a in range(1,16):globals().update(("pi%X%X"%(a,b),pi*a/b) for b in range(1,16))
 pi63v=0,pi13,pi23,pi33,pi43,pi53,pi63
 def sin1(x,v=list(map(sin,range(377)))):return v[x%377]
@@ -28,15 +26,18 @@ def ptdir(x,y,m):
 	return max(-m,y) if y%pi21>pi else min(m,y)
 def Bul(p,x,y,d,v):return Bad([p,x,y,cos(d)*v,sin(d)*v])
 def miss():
-	global hit,life,E
+	global hit,hit2,life,E,B
 	if not hit:
 		if not life:print "dead"
 		E=0
 		hit=1
 		life-=1
+		B=[]
+		hit2=30
 def atch():
 	global E
-	send("\xE2\xE3"[E==14])
+	if E==14:send("\xE3")
+	else:usend("")
 	E+=1
 	if E==15:
 		Nut(N1,0)
@@ -143,7 +144,6 @@ class CannonCannon:
 		if "C" in M:
 			del M["C"]
 			s.h=45
-			s.p=not s.p
 			s.l-=1
 		if s.l>80:
 			if not s.h:
@@ -151,6 +151,7 @@ class CannonCannon:
 				if a[0]<999 and a[2] and a[1] is not N1:msg("C")
 			else:
 				s.h-=1
+				if s.h==22:s.p=not s.p
 				for a in NN:a.y=abs(a.y-(s.h>>2))
 			if not T&15:F(Cannon(s.p,s.x,s.y,pi32,8,6))
 		else:
@@ -160,7 +161,7 @@ class CannonCannon:
 		ct=cos1(T)*s.l
 		st=sin1(T)*s.l
 		a="v2f",(s.x+ct,s.y+st,s.x-st,s.y+ct,s.x-ct,s.y-st,s.x+st,s.y-ct)
-		glColor4ub(RGB[s.p][0],0,RGB[s.p][2],655-s.y)
+		glColor4ub(RGB[s.p][0],0,RGB[s.p][2],(655-s.y)*abs(s.h-22)//22)
 		graphics.draw(4,GL_QUADS,a)
 		glColor3ubv(Wht)
 		glBegin(GL_LINE_LOOP)
@@ -378,10 +379,11 @@ else:
 	tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
 	tcp.send("%c%s"%(N1.p<<7|H-1<<5|len(L),L))
 	hopo=udp.recvfrom(0)[1]
+udp.connect(hopo)
 recv=tcp.recv
 send=tcp.send
-urecv=lambda:udp.recv(65535)
-usend=lambda x:udp.sendto(x,hopo)
+urecv=lambda:udp.recv(3)
+usend=udp.send
 ND=defaultdict(lambda:None,{0.:N1,1.:N2})
 def Nut(s=N1,x=1):
 	global N,Nap
@@ -410,24 +412,24 @@ def draw(t):
 		elif r&0xF0==0xC0:
 			a=recv(1+(r&15))
 			M[a[0]]=a[1:]
-		elif r==0xE2:E+=1
 		elif r==0xE3:
 			E=0
 			N+=[pi12,[(N2.x,N2.y)],0],
 		elif r==0xEE:miss()
 		else:raise SystemExit("%.2X%s"%(r,recv(78)))
 	while select((udp,),(),(),0)[0]:
-		a,N2.x,N2.y=map(ord,urecv())
-		N2.awds=a&1,a>>1&1,a>>2&1,a>>3&1
-		N2.x|=a<<4&256
-		N2.y|=a<<3&256
+		a=urecv()
+		if len(a)==3:
+			a,N2.x,N2.y=map(ord,a)
+			N2.awds=a&1,a>>1&1,a>>2&1,a>>3&1
+			N2.x|=a<<4&256
+			N2.y|=a<<3&256
+		elif not len(a):E+=1
 	if hit:
 		for s in NN:
-			s.x=180 if -16<s.x-180<16 else s.x-cmp(s.x,180)*12
-			s.y=256 if -16<s.y-256<16 else s.y-cmp(s.y,256)*12
+			s.x=s.x+12 if s.x<164 else s.x-12 if s.x>196 else 180
+			s.y=s.y+12 if s.y<240 else s.y-12 if s.y>272 else 256
 		hit=not(256==N1.y==N2.y and 180==N1.x==N2.x)
-		B=[]
-		hit2=30
 	else:
 		for s in NN:
 			a=4-(s.awds[2]!=s.awds[0] and s.awds[1]!=s.awds[3])
@@ -471,7 +473,7 @@ def draw(t):
 		b[1]+=b[3]
 		b[2]+=b[4]
 		r,x,y,v,h=b
-		if not(-12.<x<372. and -12.<y<524.) or s and r==s.p and (x-s.x)**2+(y-s.y)**2<400 and s==N1 and not atch():del B[c()+~a]
+		if not(-12.<x<372. and -12.<y<524.) or s and r==s.p and (x-s.x)**2+(y-s.y)**2<400 and (s==N2 or not atch()):del B[c()+~a]
 		elif (x-X0)**2+(y-Y0)**2<49. and Z0<=.5 and r!=N1.p:
 			send("\xEE")
 			miss()
