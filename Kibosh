@@ -111,12 +111,16 @@ class Cannon:
 		glColor3ubv(RGB[s.p])
 		graphics.draw(4,GL_QUADS,a)
 		glColor3ubv(Wht)
-		graphics.draw(4,GL_LINE_LOOP,a)
+		glBegin(GL_LINE_LOOP)
+		for ct in range(0,8,2):glVertex2f(a[1][ct],a[1][ct+1])
+		glEnd()
 		a="v2f",(s.x,s.y,s.x+r*cos(s.d-pi16),s.y+r*sin(s.d-pi16),s.x+r*cos(s.d+pi16),s.y+r*sin(s.d+pi16))
 		glColor3ubv(RGB[s.p])
 		graphics.draw(3,GL_TRIANGLES,a)
 		glColor3ubv(Wht)
-		graphics.draw(3,GL_LINE_LOOP,a)
+		glBegin(GL_LINE_LOOP)
+		for s in range(0,6,2):glVertex2f(a[1][s],a[1][s+1])
+		glEnd()
 class Cannond(Cannon):
 	def __init__(s,z):
 		s.x=z.x
@@ -133,7 +137,7 @@ class CannonCannon:
 		s.x=x
 		s.y=600
 		s.h=s.p=0
-		s.l=4
+		s.l=84
 	def __call__(s):
 		if s.y>400:s.y-=2
 		if "C" in M:
@@ -141,7 +145,7 @@ class CannonCannon:
 			s.h=45
 			s.p=not s.p
 			s.l-=1
-		if s.l>0:
+		if s.l>80:
 			if not s.h:
 				a=near(s.x,s.y)
 				if a[0]<999 and a[2] and a[1] is not N1:msg("C")
@@ -152,14 +156,16 @@ class CannonCannon:
 		else:
 			s.l-=2
 			for a in range(8):Bul(2,s.x,s.y,pi28*a,8)
-			if s.l==-80:return send
-		ct=cos1(T)*(80+s.l)
-		st=sin1(T)*(80+s.l)
+			if not s.l:return send
+		ct=cos1(T)*s.l
+		st=sin1(T)*s.l
 		a="v2f",(s.x+ct,s.y+st,s.x-st,s.y+ct,s.x-ct,s.y-st,s.x+st,s.y-ct)
 		glColor4ub(RGB[s.p][0],0,RGB[s.p][2],655-s.y)
 		graphics.draw(4,GL_QUADS,a)
 		glColor3ubv(Wht)
-		graphics.draw(4,GL_LINE_LOOP,a)
+		glBegin(GL_LINE_LOOP)
+		for s in range(0,8,2):glVertex2f(a[1][s],a[1][s+1])
+		glEnd()
 class Gattle:
 	die=lambda s:not Fd.add(Gattled(s))
 	def __init__(s,p,x,y,d,v,t,V=4):
@@ -191,7 +197,9 @@ class Gattle:
 		glColor3ubv(RGB[s.p])
 		graphics.draw(9,GL_TRIANGLES,a)
 		glColor3ubv(Wht)
-		graphics.draw(9,GL_LINE_LOOP,a)
+		glBegin(GL_LINE_LOOP)
+		for s in range(0,18,2):glVertex2f(a[1][s],a[1][s+1])
+		glEnd()
 class Gattled(Gattle):
 	def __init__(s,z):
 		s.p=z.p
@@ -319,7 +327,9 @@ class LaserC:
 		glColor3ubv(s.p)
 		graphics.draw(4,GL_QUADS,a)
 		glColor3ubv(Wht)
-		graphics.draw(4,GL_LINE_LOOP,a)
+		glBegin(GL_LINE_LOOP)
+		for s in range(0,8,2):glVertex2f(a[1][s],a[1][s+1])
+		glEnd()
 class LaserCd(LaserC):
 	def __init__(s,z):
 		s.x=z.l.x
