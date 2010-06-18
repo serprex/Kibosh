@@ -48,7 +48,7 @@ def msg(x,y=""):
 def on_key(k,o):
 	if 65360<k<65365:
 		N1.awds[k-65361]=o
-		usend("%c%c%c"%(N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3|N1.x&1<<4|N1.y&1<<5,N1.x>>1,N1.y>>1))
+		usend("%c%c%c"%(N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3|N1.x>>4&16|N1.y>>3&32,N1.x&255,N1.y&255))
 	elif k==65307:app.exit()
 W=window.Window(360,512,visible=False,vsync=False)
 W.on_key_press=lambda k,m:on_key(k,1)
@@ -407,10 +407,10 @@ def draw(t):
 		elif r==0xEE:miss()
 		else:raise SystemExit("%.2X%s"%(r,recv(78)))
 	while select((udp,),(),(),0)[0]:
-		a,b,c=map(ord,urecv())
+		a,N2.x,N2.y=map(ord,urecv())
 		N2.awds=a&1,a>>1&1,a>>2&1,a>>3&1
-		N2.x=b<<1|a>>4&1
-		N2.y=c<<1|a>>5&1
+		N2.x|=a<<4&256
+		N2.y|=a<<3&256
 	if hit:
 		for s in NN:
 			s.x=180 if -16<s.x-180<16 else s.x-cmp(s.x,180)*12
@@ -432,7 +432,7 @@ def draw(t):
 			if not hit2:Bad=B.append
 	s=N1.y-N2.y
 	if s:
-		Z0+=s/((N1.x-N2.x)**2+s**2)**.5
+		Z0+=s/((N2.x-N1.x)**2+s**2)**.5
 		if Z0<0.:Z0=0.
 		elif Z0>1.:Z0=1.
 	X0=N1.x+(N2.x-N1.x)*Z0
