@@ -23,6 +23,6 @@ for v in range(0,400,20):
 	Time[351+v]=lambda v=v:F(Cannon(2,368,v,pi,5,15,))
 Time[800]=lambda:F(CannonCannon(180))
 for v in range(0,300,45):Time[v+810]=lambda v=v:(F(Gattle((v%60)//30,0,400-v,piC6,6,8,6)),F(Gattle(1+(v%60)//30,320,400-v,piCA,6,10,5)))
-for v in range(0,300,60):Time[v+999]=lambda:F(LaserC(0,-24,520,0,5,pi32))
-for v in range(0,300,60):Time[v+1029]=lambda:F(LaserC(1,-24,520,0,5,pi32))
+for v in range(0,300,60):Time[v+999]=lambda:F(LaserC(0,-16,520,0,5,pi32))
+for v in range(0,300,60):Time[v+1029]=lambda:F(LaserC(1,-16,520,0,5,pi32))
 Time[1400]=lambda:F(Complement(180))
