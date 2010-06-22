@@ -7,6 +7,7 @@ from math import *
 from select import select
 from itertools import count,chain,cycle
 from random import getrandbits as ritz
+from os.path import isfile
 try:
 	range=xrange
 	from itertools import imap as map,izip as zip,ifilter as filter
@@ -331,9 +332,9 @@ for a in filter(lambda x:x not in "#",chain(("::2000","g","LKikiki","H0","U0"),o
 	if ":" in a:hopo=(a[:a.find(":")] or hopo[0] if a.find("::")==-1 else ""),int(a[a.rfind(":")+1:] or hopo[1])
 	elif "." in a:hopo=a,hopo[1]
 	elif a.isdigit():hopo=hopo[0],int(a)
+	elif isfile(a):L=bytes(a)
 	elif a[0] in "brg":N1,N2=NN=(Node(120,256,0),Node(240,256,1))[::1-((a[0]=="b" if a[0]!="g" else ritz(1))<<1)]
 	elif a[0]=="H":H=max(min(int(a[1:]),3),0)
-	elif a[0]=="L":L=bytes(a[1:])
 	elif a[0]=="U":U=int(a[1:])
 if hopo[0]:
 	tcp.connect(hopo)
