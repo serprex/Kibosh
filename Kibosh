@@ -38,14 +38,14 @@ def sexy():
 	Ee=0
 def atch():
 	global E,Ee
-	if E==11:send(b"\xE3")
+	if E>=11:send(b"\xE3")
 	E+=1
 	Ee+=1
-	if E==12:
+	if E>=12:
 		Nut(N1,0)
 		Ee=E=0
 	elif Ee==3:sexy()
-def near(x,y):return min(chain((((a.x-x)**2+(a.y-y)**2,a,a is N1) for a in NN),((((a[1][-1][0]-x)**2+(a[1][-1][1]-y)**2,a,a[2]) for a in N if a[0] is not None))))
+def near(x,y):return min(chain((((a.x-x)**2+(a.y-y)**2,a,a is N1) for a in NN),(((a[1][-1][0]-x)**2+(a[1][-1][1]-y)**2,a,a[2]) for a in N if a[0] is not None)))
 def msg(x):
 	M.add(x)
 	send(b"%c"%(0xC0|x))
@@ -229,7 +229,7 @@ class Complement:
 			if s.l==16:s.s=3
 		if s.s<2:
 			s.y+=-2 if s.s else 16
-			s.s+=s.y==(444 if s.s else 640)
+			s.s+=s.y in (444,640)
 		elif s.s==2:
 			s.d+=pi/(28+ritz(2))
 			a=near(s.x,s.y)
@@ -331,30 +331,37 @@ usend=udp.send
 tcp=socket(AF_INET,SOCK_STREAM)
 tcp.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
 tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
-for a in filter(lambda x:x not in "#",chain(("::2000","g","Kikiki","0","U0"),open("K.txt"),__import__("sys").argv[1:])):
+for a in filter(lambda x:x not in "#",chain(("::2000","g","Kikiki","0","U0"),(open("K.txt") if isfile("K.txt") else ()),__import__("sys").argv[1:])):
 	if ":" in a:hopo=(a[:a.find(":")] or hopo[0] if a.find("::")==-1 else ""),int(a[a.rfind(":")+1:] or hopo[1])
 	elif "." in a:hopo=a,hopo[1]
 	elif a.isdigit():
 		if len(a)==1:H=max(min(int(a),3),0)
 		else:hopo=hopo[0],int(a)
-	elif isfile(a):L=bytes(a)
-	elif a[0] in "brg":N1,N2=NN=(Node(120,256,0),Node(240,256,1))[::1-((a[0]=="b" if a[0]!="g" else ritz(1))<<1)]
+	elif a in "brg":N1,N2=NN=(Node(120,256,0),Node(240,256,1))[::1-((a=="b" if a!="g" else ritz(1))<<1)]
 	elif a[0]=="U":U=int(a[1:])
+	elif isfile(a):L=bytes(a)
 if hopo[0]:
 	for ND in tcp,udp:ND.connect(hopo)
+	if U:udp.bind(("",U))
+	while not select((tcp,),(),(),.5)[0]:usend("")
 	L=ord(tcp.recv(1))
 	if L>>7==N1.p:N1,N2=NN=N2,N1
 	H=L>>5&3
 	L=tcp.recv(L&63)
-	if U:udp.bind(("",U))
-	usend("")
+	if isfile(L):tcp.send("\x01")
+	else:
+		tcp.send("\0")
+		a=tcp.recv(65535)
+		if raw_input(a+"\nExecute %s? y/N "%L) in "yY":open(L,"w").write(a)
 else:
 	for ND in tcp,udp:ND.bind(hopo)
 	tcp.listen(1)
 	tcp=tcp.accept()[0]
+	udp.connect(udp.recvfrom(0)[1])
 	tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
 	tcp.send(b"%c%s"%(N1.p<<7|H<<5|len(L),L))
-	udp.connect(udp.recvfrom(0)[1])
+	if tcp.recv(1)=="\0":tcp.send(open(L).read())
+	while select((udp,),(),(),.5)[0]:udp.recv(0)
 recv=tcp.recv
 send=tcp.send
 ND=__import__("collections").defaultdict(lambda:None,{0.:N1,1.:N2})
@@ -374,7 +381,8 @@ def draw(t):
 	elif T-Tlc in Time:Time[T-Tlc]()
 	Back(T,1-Z0 if N1.p else Z0)
 	while select((tcp,),(),(),0)[0]:
-		r=ord(recv(1))
+		try:r=ord(recv(1))
+		except:raise SystemExit
 		if r&0xE0==0xA0:
 			if r&0x10:N+=[pi12,[(N2.x,N2.y)],0],
 			getattr(FF.pop(r&15|ord(recv(1))<<4,None),"die",int)()
@@ -433,8 +441,7 @@ def draw(t):
 		else:
 			d+=tuple(RGB[r])*4+tuple(BWB[r])*4
 			g+=x+7.,y,x,y+7.,x-7.,y,x,y-7.,x+4.,y,x,y+4.,x-4.,y,x,y-4.
-	else:
-		if g:graphics.draw(len(g)>>1,GL_QUADS,("v2f",g),("c3B",d))
+	if g:graphics.draw(len(g)>>1,GL_QUADS,("v2f",g),("c3B",d))
 	for r in filter(FF.__contains__,FR):del FF[r]
 	FF.update(F_F)
 	F_F.clear()
@@ -458,7 +465,7 @@ def draw(t):
 				for c in filter(lambda x:not hasattr(x,"NoN"),FF.itervalues()):
 					b=c.x-a[1][-1][0]
 					c=c.y-a[1][-1][1]
-					d=b**2+c**2
+					d=(b**2+c**2)**2
 					if d:
 						x+=b/d
 						y+=c/d
