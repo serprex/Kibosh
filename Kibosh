@@ -8,6 +8,7 @@ from select import select
 from itertools import count,chain,cycle
 from random import getrandbits as ritz
 from os.path import isfile
+from collections import defaultdict
 try:
 	range=xrange
 	from itertools import imap as map,izip as zip,ifilter as filter
@@ -46,9 +47,9 @@ def atch():
 		Ee=E=0
 	elif Ee==3:sexy()
 def near(x,y):return min(chain((((a.x-x)**2+(a.y-y)**2,a,a is N1) for a in NN),(((a[1][-1][0]-x)**2+(a[1][-1][1]-y)**2,a,a[2]) for a in N if a[0] is not None)))
-def msg(x):
-	M.add(x)
-	send(b"%c"%(0xC0|x))
+def msg(x,y):
+	M[y].add(x)
+	send(b"%c%c"%(0xC0|x,y))
 def on_key(k,o):
 	if 65360<k<65365:
 		N1.awds[k-65361]=o
@@ -65,7 +66,7 @@ X0=Y0=Z0=.5
 Nap=T=Tlc=E=Ee=hit2=0
 life=3
 hit=(180,256),(180,256)
-M=set()
+M=defaultdict(set)
 Time={}
 Tl=[]
 N=[]
@@ -139,14 +140,14 @@ class CannonCannon:
 		s.l=84
 	def __call__(s):
 		if s.y>400:s.y-=2
-		if 0 in M:
-			M.remove(0)
+		if 0 in M[s.x>>1]:
+			M[s.x>>1].remove(0)
 			s.h=45
 			s.l-=1
 		if s.l>80:
 			if not s.h:
 				a=near(s.x,s.y)
-				if a[0]<999 and a[2] and a[1] is not N1:msg(0)
+				if a[0]<999 and a[2] and a[1] is not N1:msg(0,s.x>>1)
 			else:
 				s.h-=1
 				if s.h==22:s.p=not s.p
@@ -222,8 +223,8 @@ class Complement:
 		s.t=900
 	def __call__(s):
 		if s.t:s.t-=1
-		if 1 in M:
-			M.remove(1)
+		if 1 in M[s.x>>1]:
+			M[s.x>>1].remove(1)
 			s.h=60
 			s.l<<=1
 			if s.l==16:s.s=3
@@ -234,7 +235,7 @@ class Complement:
 			s.d+=pi/(28+ritz(2))
 			a=near(s.x,s.y)
 			if s.h:s.h-=1
-			elif a[0]<999 and a[2] and a[1] is not N1:msg(1)
+			elif a[0]<999 and a[2] and a[1] is not N1:msg(1,s.x>>1)
 		else:
 			s.e+=1
 			if s.e==60:return send
@@ -364,7 +365,7 @@ else:
 	while select((udp,),(),(),.5)[0]:udp.recv(0)
 recv=tcp.recv
 send=tcp.send
-ND=__import__("collections").defaultdict(lambda:None,{0.:N1,1.:N2})
+ND=defaultdict(lambda:None,{0.:N1,1.:N2})
 def Nut(s=N1,x=1):
 	global N,Nap
 	if s is N1:
@@ -386,7 +387,7 @@ def draw(t):
 		if r&0xE0==0xA0:
 			if r&0x10:N+=[pi12,[(N2.x,N2.y)],0],
 			getattr(FF.pop(r&15|ord(recv(1))<<4,None),"die",int)()
-		elif r&0xF0==0xC0:M.add(r&15)
+		elif r&0xF0==0xC0:M[ord(recv(1))].add(r&15)
 		elif r==0xE3:
 			E=0
 			N+=[pi12,[(N2.x,N2.y)],0],
@@ -442,14 +443,14 @@ def draw(t):
 			d+=tuple(RGB[r])*4+tuple(BWB[r])*4
 			g+=x+7.,y,x,y+7.,x-7.,y,x,y-7.,x+4.,y,x,y+4.,x-4.,y,x,y-4.
 	if g:graphics.draw(len(g)>>1,GL_QUADS,("v2f",g),("c3B",d))
-	for r in filter(FF.__contains__,FR):del FF[r]
-	FF.update(F_F)
-	F_F.clear()
 	for r,a in filter(lambda x:x[1],map(lambda r:(r[0],r[1]()),FF.iteritems())):
 		FR+=r,
 		if a is not send:
 			send(b"%c%c"%(0xA0|Nap<<4|r&15,r>>4))
 			Nap=0
+	for r in filter(FF.__contains__,FR):del FF[r]
+	FF.update(F_F)
+	F_F.clear()
 	Fd.difference_update([r for r in Fd if r()])
 	r=0
 	g=[]
