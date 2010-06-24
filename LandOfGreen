@@ -5,9 +5,9 @@ def Back(x,z):
 	glRecti(0,0,360,512)
 for v in range(180,720,180):Time[v]=lambda v=v:F(Laser(v==360,v>>1,0,pi12))
 for v in range(0,400,61):Time[v]=lambda:F(Cannon(2,180,-16,pi12,5,8),Cannon(2,180,528,pi32,5,8))
-for v in range(0,300,41):Time[v+400]=lambda:F(Cannon(2,-16,128,0,5,8),Cannon(2,376,384,pi,6,7))
+for v in range(0,300,41):Time[v+400]=lambda:F(Cannon(2,-16,128,0,5,8),Cannon(2,376,384,pi,6,8))
 def v():
-	if T==999:
+	if T==888:
 		F(CannonCannon(240))
 		return send
 v.NoN=Time[720]=lambda v=v:F(CannonCannon(120),v)

@@ -33,9 +33,11 @@ def miss(f=True):
 		B=[]
 		hit=(N1.x,N1.y),(N2.x,N2.y)
 		hit2=30
+zT=sT=0
 def sexy():
-	global Ee
-	usend(b"%c%c%c"%(N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3|N1.x>>4&16|N1.y>>3&32|Ee<<6,N1.x&255,N1.y&255))
+	global Ee,sT
+	sT+=1
+	usend(b"%c%c%c%c%c"%(T>>8,T&255,N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3|N1.x>>4&16|N1.y>>3&32|Ee<<6,N1.x&255,N1.y&255))
 	Ee=0
 def atch():
 	global E,Ee
@@ -331,29 +333,28 @@ udp.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
 usend=udp.send
 tcp=socket(AF_INET,SOCK_STREAM)
 tcp.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
-tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
 for a in filter(lambda x:x not in "#",chain(("::2000","g","Kikiki","0","U0"),(open("K.txt") if isfile("K.txt") else ()),__import__("sys").argv[1:])):
 	if ":" in a:hopo=(a[:a.find(":")] or hopo[0] if a.find("::")==-1 else ""),int(a[a.rfind(":")+1:] or hopo[1])
 	elif "." in a:hopo=a,hopo[1]
 	elif a.isdigit():
 		if len(a)==1:H=max(min(int(a),3),0)
 		else:hopo=hopo[0],int(a)
-	elif a in "brg":N1,N2=NN=(Node(120,256,0),Node(240,256,1))[::1-((a=="b" if a!="g" else ritz(1))<<1)]
-	elif a[0]=="U":U=int(a[1:])
+	elif a in "brg":N1,N2=NN=(Node(120,256,0),Node(240,256,1))[::1-((ritz(a=="g") or a=="b")<<1)]
+	elif a[0]=="U" and a[1:].isdigit():U=int(a[1:])
 	elif isfile(a):L=bytes(a)
 if hopo[0]:
 	for ND in tcp,udp:ND.connect(hopo)
 	if U:udp.bind(("",U))
+	usend("")
 	while not select((tcp,),(),(),.5)[0]:usend("")
 	L=ord(tcp.recv(1))
 	if L>>7==N1.p:N1,N2=NN=N2,N1
 	H=L>>5&3
 	L=tcp.recv(L&63)
-	if isfile(L):tcp.send("\x01")
-	else:
-		tcp.send("\0")
+	tcp.send(b"%c"%isfile(L))
+	if not isfile(L):
 		a=tcp.recv(65535)
-		if raw_input(a+"\nExecute %s? y/N "%L) in "yY":open(L,"w").write(a)
+		if raw_input(a+b"\nExecute %s? yN "%L) in "yY":open(L,"w").write(a)
 else:
 	for ND in tcp,udp:ND.bind(hopo)
 	tcp.listen(1)
@@ -361,7 +362,7 @@ else:
 	udp.connect(udp.recvfrom(0)[1])
 	tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
 	tcp.send(b"%c%s"%(N1.p<<7|H<<5|len(L),L))
-	if tcp.recv(1)=="\0":tcp.send(open(L).read())
+	if tcp.recv(1)==b"\0":tcp.send(open(L).read())
 	while select((udp,),(),(),.5)[0]:udp.recv(0)
 recv=tcp.recv
 send=tcp.send
@@ -373,7 +374,7 @@ def Nut(s=N1,x=1):
 		Nap=x
 execfile(L)
 def draw(t):
-	global T,Tl,Tlc,X0,Y0,Z0,hit,hit2,E,N,B,Bad,Nap,FR
+	global T,Tl,Tlc,X0,Y0,Z0,hit,hit2,E,N,B,Bad,Nap,FR,zT
 	W.clear()
 	if Tl:
 		Tlc+=1
@@ -393,11 +394,14 @@ def draw(t):
 			N+=[pi12,[(N2.x,N2.y)],0],
 		elif r==0xEE:miss(False)
 	while select((udp,),(),(),0)[0]:
-		a,N2.x,N2.y=map(ord,udp.recv(3))
+		b,c,a,x,y=map(ord,udp.recv(5))
+		c|=b<<8
 		E+=a>>6
-		N2.awds=a&1,a>>1&1,a>>2&1,a>>3&1
-		N2.x|=a<<4&256
-		N2.y|=a<<3&256
+		if c>zT:
+			zT=c
+			N2.awds=a&1,a>>1&1,a>>2&1,a>>3&1
+			N2.x=x|a<<4&256
+			N2.y=y|a<<3&256
 	if hit!=((180,256),(180,256)):hit=(N1.x,N1.y),(N2.x,N2.y)=tuple(((x+12 if x<164 else x-12 if x>196 else 180),(y+12 if y<240 else y-12 if y>272 else 256)) for x,y in hit)
 	else:
 		for s in NN:
@@ -471,7 +475,7 @@ def draw(t):
 						x+=b/d
 						y+=c/d
 						z=1
-			a[1]+=(a[1][-1][0]+cos(a[0])*8.,a[1][-1][1]+sin(a[0])*8.),
+			a[1]+=(a[1][-1][0]+cos(a[0])*9.,a[1][-1][1]+sin(a[0])*9.),
 			a[0]=None if len(a[1])==45 else atan2(y,x) if z else a[0]
 		d=16./len(a[1])
 		c=0.
@@ -487,7 +491,7 @@ def draw(t):
 	glRecti(0,512,E*30,504)
 	T+=1
 	W.flip()
-clock.schedule_interval(draw,1/30)
+clock.schedule_interval(draw,1/30-H/666)
 W.set_visible(True)
 recv(send(b" "))
 app.run()
