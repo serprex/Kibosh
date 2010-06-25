@@ -14,6 +14,6 @@ v.NoN=Time[720]=lambda v=v:F(CannonCannon(120),v)
 def v():
 	for b in FF.itervalues():b.die()
 	FF.clear()
-Time[730]=v
-Time[740]=lambda:F(Complement(120),Complement(240))
+Time[720]=v
+Time[730]=lambda:F(Complement(120),Complement(240))
 for v in range(180,720,180):Time[600+v]=lambda v=v:F(Laser(2,v>>1,0,pi12))

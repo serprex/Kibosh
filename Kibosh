@@ -5,15 +5,14 @@ from pyglet.gl import *
 from socket import *
 from math import *
 from select import select
-from itertools import count,chain,cycle
+from itertools import chain,cycle
 from random import getrandbits as ritz
 from os.path import isfile
 from collections import defaultdict
 try:
 	range=xrange
 	from itertools import imap as map,izip as zip,ifilter as filter
-	getnext=lambda x:x.next
-except:getnext=lambda x:x.__next__
+except:pass
 for a in range(1,16):globals().update(("pi%X%X"%(a,b),pi*a/b) for b in range(1,16))
 pi63v=0,pi13,pi23,pi33,pi43,pi53,pi63
 GLB3=GLubyte*3
@@ -30,10 +29,9 @@ def miss(f=True):
 		if not life:print("dead")
 		Ee=E=0
 		life-=1
-		B=[]
+		B=B[:]=[]
 		hit=(N1.x,N1.y),(N2.x,N2.y)
 		hit2=30
-zT=sT=0
 def sexy():
 	global Ee,sT
 	sT+=1
@@ -45,7 +43,7 @@ def atch():
 	E+=1
 	Ee+=1
 	if E>=12:
-		Nut(N1,0)
+		Nut(0)
 		Ee=E=0
 	elif Ee==3:sexy()
 def near(x,y):return min(chain((((a.x-x)**2+(a.y-y)**2,a,a is N1) for a in NN),(((a[1][-1][0]-x)**2+(a[1][-1][1]-y)**2,a,a[2]) for a in N if a[0] is not None)))
@@ -65,21 +63,21 @@ glDisable(GL_POLYGON_SMOOTH)
 glDisable(GL_DITHER)
 glEnable(GL_BLEND)
 X0=Y0=Z0=.5
-Nap=T=Tlc=E=Ee=hit2=0
+zT=sT=FC=Nap=T=Tlc=E=Ee=hit2=0
 life=3
 hit=(180,256),(180,256)
 M=defaultdict(set)
 Time={}
+FF={}
 Tl=[]
 N=[]
 B=[]
 Bad=B.append
 def F(*x):
-	for x in x:F_F[FC()&4095]=x
-FC=getnext(count())
-FR=[]
-FF={}
-F_F={}
+	global FC
+	for x in x:
+		while FC in FF:FC=FC+1&2047
+		FF[FC]=x
 class Node:
 	def __init__(s,*x):
 		s.x,s.y,s.p=x
@@ -90,14 +88,14 @@ class Cannon:
 		s.p=p
 		s.x=x
 		s.y=y
-		s.h=cos(d)*v
-		s.v=sin(d)*v
-		s.t=t
+		s.hv=cos(d)*v
+		s.vv=sin(d)*v
+		s.bt=t
 		s.d=d if D is None else D
-		s.V=V
+		s.bV=V
 	def __call__(s):
-		s.x+=s.h
-		s.y+=s.v
+		s.x+=s.hv
+		s.y+=s.vv
 		s.d+=ptdir(s.d,atan2(Y0-s.y,X0-s.x),pi1F)
 		if not(-32<s.x<392 and -32<s.y<544):return send
 		a=near(s.x,s.y)
@@ -106,7 +104,7 @@ class Cannon:
 			return s.die()
 		ct=cos(T)*16.
 		st=sin(T)*16.
-		if not T%s.t:Bul(s.p,s.x+ct,s.y+st,s.d,s.V)
+		if not T%s.bt:Bul(s.p,s.x+ct,s.y+st,s.d,s.bV)
 		s.draw(24.,ct,st)
 	def draw(s,r,ct,st):
 		a="v2f",(s.x+ct,s.y+st,s.x-st,s.y+ct,s.x-ct,s.y-st,s.x+st,s.y-ct)
@@ -125,10 +123,7 @@ class Cannon:
 		glEnd()
 class Cannond(Cannon):
 	def __init__(s,z):
-		s.x=z.x
-		s.y=z.y
-		s.d=z.d
-		s.p=z.p
+		for a in filter(lambda x:len(x)==1,dir(z)):setattr(s,a,getattr(z,a))
 		s.r=16
 	def __call__(s):
 		s.r-=1
@@ -141,6 +136,7 @@ class CannonCannon:
 		s.h=s.p=0
 		s.l=84
 	def __call__(s):
+		global FC
 		if s.y>400:s.y-=2
 		if 0 in M[s.x>>1]:
 			M[s.x>>1].remove(0)
@@ -158,7 +154,9 @@ class CannonCannon:
 		else:
 			s.l-=2
 			for a in range(8):Bul(2,s.x,s.y,pi28*a,8)
-			if not s.l:return send
+			if not s.l:
+				FC=0
+				return send
 		ct=cos(T)*s.l
 		st=sin(T)*s.l
 		a="v2f",(s.x+ct,s.y+st,s.x-st,s.y+ct,s.x-ct,s.y-st,s.x+st,s.y-ct)
@@ -174,25 +172,25 @@ class Gattle:
 		s.p=p
 		s.x=x
 		s.y=y
-		s.h=cos(d)*v
-		s.v=sin(d)*v
-		s.t=t
-		s.T=s.d=0
-		s.V=V
+		s.hv=cos(d)*v
+		s.vv=sin(d)*v
+		s.bt=t
+		s.bT=s.d=0
+		s.bV=V
 	def __call__(s):
-		s.x+=s.h
-		s.y+=s.v
-		s.d+=pi19/s.t
-		s.T+=1
+		s.x+=s.hv
+		s.y+=s.vv
+		s.d+=pi19/s.bt
+		s.bT+=1
 		if not(-32<s.x<392 and -32<s.y<544):return send
 		a=near(s.x,s.y)
 		if a[0]<400 and a[2]:
 			if a[1] is N1 and N1.p==s.p:Nut()
 			return s.die()
-		if not s.T%s.t:
-			Bul(s.p,s.x,s.y,s.d,s.V)
-			Bul(s.p,s.x,s.y,s.d+pi23,s.V)
-			Bul(s.p,s.x,s.y,s.d-pi23,s.V)
+		if not s.bT%s.bt:
+			Bul(s.p,s.x,s.y,s.d,s.bV)
+			Bul(s.p,s.x,s.y,s.d+pi23,s.bV)
+			Bul(s.p,s.x,s.y,s.d-pi23,s.bV)
 		s.draw(pi16)
 	def draw(s,r):
 		a="v2f",(s.x,s.y,s.x+24.*cos(s.d-r),s.y+24.*sin(s.d-r),s.x+24.*cos(s.d+r),s.y+24.*sin(s.d+r),s.x,s.y,s.x+24.*cos(s.d+pi46-r),s.y+24.*sin(s.d+pi46-r),s.x+24.*cos(s.d+pi46+r),s.y+24.*sin(s.d+pi46+r),s.x,s.y,s.x+24.*cos(s.d-pi46-r),s.y+24.*sin(s.d-pi46-r),s.x+24.*cos(s.d-pi46+r),s.y+24.*sin(s.d-pi46+r))
@@ -204,10 +202,7 @@ class Gattle:
 		glEnd()
 class Gattled(Gattle):
 	def __init__(s,z):
-		s.p=z.p
-		s.x=z.x
-		s.y=z.y
-		s.d=z.d
+		for a in filter(lambda x:len(x)==1,dir(z)):setattr(s,a,getattr(z,a))
 		s.r=pi16
 	def __call__(s):
 		s.r-=pi16/16
@@ -222,19 +217,19 @@ class Complement:
 		s.l=2
 		s.h=s.s=0
 		s.e=1
-		s.t=900
+		s.t=666
 	def __call__(s):
 		if s.t:s.t-=1
 		if 1 in M[s.x>>1]:
 			M[s.x>>1].remove(1)
-			s.h=60
+			s.h=30
 			s.l<<=1
 			if s.l==16:s.s=3
 		if s.s<2:
 			s.y+=-2 if s.s else 16
 			s.s+=s.y in (444,640)
 		elif s.s==2:
-			s.d+=pi/(28+ritz(2))
+			s.d+=pi/(29+ritz(1))
 			a=near(s.x,s.y)
 			if s.h:s.h-=1
 			elif a[0]<999 and a[2] and a[1] is not N1:msg(1,s.x>>1)
@@ -246,14 +241,15 @@ class Complement:
 		for a in range(s.l):
 			ca=cos(s.d+pi21*a/s.l)*s.e
 			sa=sin(s.d+pi21*a/s.l)*s.e
-			if T&3 and T%7 and s.s<3 or not s.t:Bad([getattr(ND[1.-Z0],"p",2),s.x+ca*99.,s.y+sa*99.,ca*7+H/4,sa*7+H/4])
+			if T&3 and T%7 and s.s<3:Bad([getattr(ND[1.-Z0],"p",2),s.x+ca*99.,s.y+sa*99.,ca*7+H/4,sa*7+H/4])
+			elif not s.t:Bad([2,s.x+ca*99.,s.y+sa*99.,ca*7+H/4,sa*7+H/4])
 			for a in range(9,99,3):glVertex2f(s.x+ca*a+ritz(3)-4,s.y+sa*a+ritz(3)-4)
 		glEnd()
 class Laser(object):
 	NoN=die=lambda s:not Fd.add(Laserd(s))
 	def __init__(s,*x):
 		s.p,s.x,s.y,s.t=x
-		s.d=getnext(cycle(sin(pi19*a) for a in range(18)))
+		s.d=iter(cycle(sin(pi19*a) for a in range(18)))
 		s.l=0
 		s.V=graphics.vertex_list(1,"v2f/stream","c3B/static")
 		s.Vs=0
@@ -271,13 +267,13 @@ class Laser(object):
 		s.Vs=3+s.l-s.l%3
 		s.V.resize(s.Vs)
 		for a in range(Vs,s.Vs,3):s.V.colors[a*3:a*3+9]=tuple((RGB if a&3 else BWB)[s.p])*3
-		sd=s.d()
-		for a in range(0,s.l,3):
-			c=cos(a)+sd
-			ha=s.x+h*a-c*8.
-			va=s.y+v*a-c*8.
-			s.V.vertices[a*2:a*2+6]=ha+c*ritz(4),va+c*ritz(4),ha+c*ritz(4),va+c*ritz(4),ha+c*ritz(4),va+c*ritz(4)
-		s.V.draw(GL_TRIANGLES)
+		for sd in s.d:
+			for a in range(0,s.l,3):
+				c=cos(a)+sd
+				ha=s.x+h*a-c*8.
+				va=s.y+v*a-c*8.
+				s.V.vertices[a*2:a*2+6]=ha+c*ritz(4),va+c*ritz(4),ha+c*ritz(4),va+c*ritz(4),ha+c*ritz(4),va+c*ritz(4)
+			return s.V.draw(GL_TRIANGLES)
 class Laserd(Laser):
 	def __init__(s,z):
 		for a in filter(lambda x:len(x)<3,dir(z)):setattr(s,a,getattr(z,a))
@@ -345,36 +341,33 @@ for a in filter(lambda x:x not in "#",chain(("::2000","g","Kikiki","0","U0"),(op
 if hopo[0]:
 	for ND in tcp,udp:ND.connect(hopo)
 	if U:udp.bind(("",U))
-	usend("")
-	while not select((tcp,),(),(),.5)[0]:usend("")
+	while not select((tcp,),(),(),.5)[0]:usend(b"")
 	L=ord(tcp.recv(1))
 	if L>>7==N1.p:N1,N2=NN=N2,N1
 	H=L>>5&3
 	L=tcp.recv(L&63)
 	tcp.send(b"%c"%isfile(L))
 	if not isfile(L):
-		a=tcp.recv(65535)
-		if raw_input(a+b"\nExecute %s? yN "%L) in "yY":open(L,"w").write(a)
+		ND=tcp.recv(8192)
+		if (raw_input(ND+b"\nExecute %s? yN "%L)[:1] or " ") in "yY":open(L,"w").write(ND)
 else:
 	for ND in tcp,udp:ND.bind(hopo)
 	tcp.listen(1)
 	tcp=tcp.accept()[0]
 	udp.connect(udp.recvfrom(0)[1])
-	tcp.setsockopt(IPPROTO_TCP,TCP_NODELAY,1)
 	tcp.send(b"%c%s"%(N1.p<<7|H<<5|len(L),L))
 	if tcp.recv(1)==b"\0":tcp.send(open(L).read())
 	while select((udp,),(),(),.5)[0]:udp.recv(0)
 recv=tcp.recv
 send=tcp.send
 ND=defaultdict(lambda:None,{0.:N1,1.:N2})
-def Nut(s=N1,x=1):
+def Nut(x=1):
 	global N,Nap
-	if s is N1:
-		N+=[pi12,[(s.x,s.y)],1],
-		Nap=x
+	N+=[pi12,[(N1.x,N1.y)],1],
+	Nap=x
 execfile(L)
 def draw(t):
-	global T,Tl,Tlc,X0,Y0,Z0,hit,hit2,E,N,B,Bad,Nap,FR,zT
+	global T,Tl,Tlc,X0,Y0,Z0,hit,hit2,E,N,B,Bad,Nap,zT
 	W.clear()
 	if Tl:
 		Tlc+=1
@@ -385,9 +378,9 @@ def draw(t):
 	while select((tcp,),(),(),0)[0]:
 		try:r=ord(recv(1))
 		except:raise SystemExit
-		if r&0xE0==0xA0:
-			if r&0x10:N+=[pi12,[(N2.x,N2.y)],0],
-			getattr(FF.pop(r&15|ord(recv(1))<<4,None),"die",int)()
+		if r&0xF0==0xA0:
+			if r&8:N+=[pi12,[(N2.x,N2.y)],0],
+			getattr(FF.pop(r&7|ord(recv(1))<<3,None),"die",int)()
 		elif r&0xF0==0xC0:M[ord(recv(1))].add(r&15)
 		elif r==0xE3:
 			E=0
@@ -433,28 +426,24 @@ def draw(t):
 	d=[]
 	g=[]
 	s=ND[Z0]
-	c=getnext(count())
-	glBlendFunc(GL_SRC_ALPHA,GL_ZERO)
-	for a,b in enumerate(reversed(B)):
+	for b in reversed(B):
 		r=b[0]
 		x=b[1]=b[1]+b[3]
 		y=b[2]=b[2]+b[4]
-		if not(-12.<x<372. and -12.<y<524.) or s and r==s.p and (x-s.x)**2+(y-s.y)**2<400 and (s==N2 or not atch()):del B[c()+~a]
+		if not(-12.<x<372. and -12.<y<524.) or s and r==s.p and (x-s.x)**2+(y-s.y)**2<400 and (s is N2 or not atch()):B.remove(b)
 		elif (x-X0)**2+(y-Y0)**2<49. and Z0<=.5 and r!=N1.p:
 			miss()
 			break
 		else:
 			d+=tuple(RGB[r])*4+tuple(BWB[r])*4
 			g+=x+7.,y,x,y+7.,x-7.,y,x,y-7.,x+4.,y,x,y+4.,x-4.,y,x,y-4.
+	glBlendFunc(GL_SRC_ALPHA,GL_ZERO)
 	if g:graphics.draw(len(g)>>1,GL_QUADS,("v2f",g),("c3B",d))
-	for r,a in filter(lambda x:x[1],map(lambda r:(r[0],r[1]()),FF.iteritems())):
-		FR+=r,
+	for r,a in [x for x in ((x,y()) for x,y in FF.items()) if x[1]]:
+		del FF[r]
 		if a is not send:
-			send(b"%c%c"%(0xA0|Nap<<4|r&15,r>>4))
+			send(b"%c%c"%(0xA0|Nap<<3|r&7,r>>3))
 			Nap=0
-	for r in filter(FF.__contains__,FR):del FF[r]
-	FF.update(F_F)
-	F_F.clear()
 	Fd.difference_update([r for r in Fd if r()])
 	r=0
 	g=[]
@@ -470,7 +459,7 @@ def draw(t):
 				for c in filter(lambda x:not hasattr(x,"NoN"),FF.itervalues()):
 					b=c.x-a[1][-1][0]
 					c=c.y-a[1][-1][1]
-					d=(b**2+c**2)**2
+					d=b**4+c**4
 					if d:
 						x+=b/d
 						y+=c/d
