@@ -40,9 +40,9 @@ def sexy():
 def atch():
 	global E,Ee
 	if E>=11:send(b"\xE3")
-	E+=1
+	E+=30
 	Ee+=1
-	if E>=12:
+	if E>=360:
 		Nut(0)
 		Ee=E=0
 	elif Ee==3:sexy()
@@ -265,8 +265,9 @@ class Laser(object):
 		if s.l<0:return
 		Vs=s.Vs
 		s.Vs=3+s.l-s.l%3
-		s.V.resize(s.Vs)
-		for a in range(Vs,s.Vs,3):s.V.colors[a*3:a*3+9]=tuple((RGB if a&3 else BWB)[s.p])*3
+		if s.Vs!=Vs:
+			s.V.resize(s.Vs)
+			for a in range(Vs,s.Vs,3):s.V.colors[a*3:a*3+9]=tuple((RGB if a&3 else BWB)[s.p])*3
 		for sd in s.d:
 			for a in range(0,s.l,3):
 				c=cos(a)+sd
@@ -389,7 +390,7 @@ def draw(t):
 	while select((udp,),(),(),0)[0]:
 		b,c,a,x,y=map(ord,udp.recv(5))
 		c|=b<<8
-		E+=a>>6
+		E+=(a>>6)*30
 		if c>zT:
 			zT=c
 			N2.awds=a&1,a>>1&1,a>>2&1,a>>3&1
@@ -446,7 +447,7 @@ def draw(t):
 			Nap=0
 	Fd.difference_update([r for r in Fd if r()])
 	r=0
-	g=[]
+	g=[0,512,0,504,E,504,E,504,0,512,E,512]
 	for a in N:
 		if a[0] is None:
 			del a[1][0]
@@ -459,14 +460,14 @@ def draw(t):
 				for c in filter(lambda x:not hasattr(x,"NoN"),FF.itervalues()):
 					b=c.x-a[1][-1][0]
 					c=c.y-a[1][-1][1]
-					d=b**4+c**4
+					d=b**2+c**2
 					if d:
 						x+=b/d
 						y+=c/d
 						z=1
 			a[1]+=(a[1][-1][0]+cos(a[0])*9.,a[1][-1][1]+sin(a[0])*9.),
 			a[0]=None if len(a[1])==45 else atan2(y,x) if z else a[0]
-		d=16./len(a[1])
+		d=16/len(a[1])
 		c=0.
 		for x,y in a[1]:
 			c+=d
@@ -476,8 +477,7 @@ def draw(t):
 	del N[:r]
 	glBlendFunc(GL_ONE_MINUS_DST_COLOR,GL_ZERO)
 	glColor3ubv(Wht)
-	if g:graphics.draw(len(g)>>1,GL_TRIANGLES,("v2f",g))
-	glRecti(0,512,E*30,504)
+	graphics.draw(len(g)>>1,GL_TRIANGLES,("v2f",g))
 	T+=1
 	W.flip()
 clock.schedule_interval(draw,1/30-H/666)
