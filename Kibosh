@@ -39,10 +39,10 @@ def sexy():
 	Ee=0
 def atch():
 	global E,Ee
-	if E>=11:send(b"\xE3")
 	E+=30
 	Ee+=1
 	if E>=360:
+		send(b"\xE3")
 		Nut(0)
 		Ee=E=0
 	elif Ee==3:sexy()
@@ -232,7 +232,8 @@ class Complement:
 			s.d+=pi/(29+ritz(1))
 			a=near(s.x,s.y)
 			if s.h:s.h-=1
-			elif a[0]<999 and a[2] and a[1] is not N1:msg(1,s.x>>1)
+			elif a[0]<999 and a[2] and a[1] is not N1:
+				msg(1,s.x>>1)
 		else:
 			s.e+=1
 			if s.e==60:return send
@@ -349,7 +350,7 @@ if hopo[0]:
 	L=tcp.recv(L&63)
 	tcp.send(b"%c"%isfile(L))
 	if not isfile(L):
-		ND=tcp.recv(8192)
+		ND=__import__("zlib").decompress(tcp.recv(8192))
 		if (raw_input(ND+b"\nExecute %s? yN "%L)[:1] or " ") in "yY":open(L,"w").write(ND)
 else:
 	for ND in tcp,udp:ND.bind(hopo)
@@ -357,7 +358,7 @@ else:
 	tcp=tcp.accept()[0]
 	udp.connect(udp.recvfrom(0)[1])
 	tcp.send(b"%c%s"%(N1.p<<7|H<<5|len(L),L))
-	if tcp.recv(1)==b"\0":tcp.send(open(L).read())
+	if tcp.recv(1)==b"\0":tcp.send(__import__("zlib").compress(open(L).read()))
 	while select((udp,),(),(),.5)[0]:udp.recv(0)
 recv=tcp.recv
 send=tcp.send

@@ -1,8 +1,12 @@
 #!/usr/bin/python
 def Back(x,z):
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE)
-	glColor4f(1-z,.5,z,abs(z-.5))
-	glRecti(0,0,360,512)
+	glBlendFunc(GL_SRC_ALPHA,GL_SRC_ALPHA)
+	glColor4f(1-z,.5,z,.5)
+	t=abs(sin(sT/5+T/30))
+	glRectf(64,64,80+120*t,80+t*480)
+	glRectf(0,512,t*360,512-t*512)
+	glRectf(180,256,120+t*255,t*255)
+	glRectf(180,512,240+t*255,512-t*255)
 for v in range(180,720,180):Time[v]=lambda v=v:F(Laser(v==360,v>>1,0,pi12))
 for v in range(0,400,61):Time[v]=lambda:F(Cannon(2,180,-16,pi12,5,8),Cannon(2,180,528,pi32,5,8))
 for v in range(0,300,41):Time[v+400]=lambda:F(Cannon(2,-16,128,0,5,8),Cannon(2,376,384,pi,6,8))
