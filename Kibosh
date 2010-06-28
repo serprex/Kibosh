@@ -232,8 +232,7 @@ class Complement:
 			s.d+=pi/(29+ritz(1))
 			a=near(s.x,s.y)
 			if s.h:s.h-=1
-			elif a[0]<999 and a[2] and a[1] is not N1:
-				msg(1,s.x>>1)
+			elif a[0]<999 and a[2] and a[1] is not N1:msg(1,s.x>>1)
 		else:
 			s.e+=1
 			if s.e==60:return send
@@ -242,8 +241,8 @@ class Complement:
 		for a in range(s.l):
 			ca=cos(s.d+pi21*a/s.l)*s.e
 			sa=sin(s.d+pi21*a/s.l)*s.e
-			if T&3 and T%7 and s.s<3:Bad([getattr(ND[1.-Z0],"p",2),s.x+ca*99.,s.y+sa*99.,ca*7+H/4,sa*7+H/4])
-			elif not s.t:Bad([2,s.x+ca*99.,s.y+sa*99.,ca*7+H/4,sa*7+H/4])
+			if T&3 and T%7 and s.s<3:Bad([getattr(ND[1.-Z0],"p",2),s.x+ca*99.,s.y+sa*99.,ca*(7+H/4),sa*(7+H/4)])
+			elif not s.t:Bad([2,s.x+ca*99.,s.y+sa*99.,ca*(7+H/4),sa*(7+H/4)])
 			for a in range(9,99,3):glVertex2f(s.x+ca*a+ritz(3)-4,s.y+sa*a+ritz(3)-4)
 		glEnd()
 class Laser(object):
@@ -325,6 +324,15 @@ class LaserCd(LaserC):
 	def __call__(s):
 		s.r-=1
 		return not s.r or s.draw(s.r)
+class Trail:
+	def __init__(s,*x):s.p,s.x,s.y,s.d,s.v,s.bt=x
+	def __call__(s):
+		s.x+=cos(s.d)*s.v
+		s.y+=sin(s.d)*s.v
+		s.d+=ptdir(s.d,atan2(Y0-s.y,X0-s.x),pi1F)
+		a=near(s.x,s.y)
+		if not T%s.bt:Bad([s.p,s.x,s.y,0.,0.])
+		return a[0]<400 and a[2] and not(a[1] is N1 and Z0)
 Fd=set()
 udp=socket(AF_INET,SOCK_DGRAM)
 udp.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
@@ -343,7 +351,8 @@ for a in filter(lambda x:x not in "#",chain(("::2000","g","Kikiki","0","U0"),(op
 if hopo[0]:
 	for ND in tcp,udp:ND.connect(hopo)
 	if U:udp.bind(("",U))
-	while not select((tcp,),(),(),.5)[0]:usend(b"")
+	usend(b"")
+	while not select((tcp,),(),(),.3)[0]:usend(b"")
 	L=ord(tcp.recv(1))
 	if L>>7==N1.p:N1,N2=NN=N2,N1
 	H=L>>5&3
@@ -359,7 +368,7 @@ else:
 	udp.connect(udp.recvfrom(0)[1])
 	tcp.send(b"%c%s"%(N1.p<<7|H<<5|len(L),L))
 	if tcp.recv(1)==b"\0":tcp.send(__import__("zlib").compress(open(L).read()))
-	while select((udp,),(),(),.5)[0]:udp.recv(0)
+	while select((udp,),(),(),.1)[0]:udp.recv(0)
 recv=tcp.recv
 send=tcp.send
 ND=defaultdict(lambda:None,{0.:N1,1.:N2})

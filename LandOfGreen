@@ -8,7 +8,7 @@ def Back(x,z):
 	glRectf(180,256,120+t*255,t*255)
 	glRectf(180,512,240+t*255,512-t*255)
 for v in range(180,720,180):Time[v]=lambda v=v:F(Laser(v==360,v>>1,0,pi12))
-for v in range(0,400,61):Time[v]=lambda:F(Cannon(2,180,-16,pi12,5,8),Cannon(2,180,528,pi32,5,8))
+for v in range(0,400,61):Time[v]=lambda v=v:F(Cannon(2,180,-16,pi12,5,8),(Cannon if v%244 else Trail)(2,180,528,pi32,5,8))
 for v in range(0,300,41):Time[v+400]=lambda:F(Cannon(2,-16,128,0,5,8),Cannon(2,376,384,pi,6,8))
 def v():
 	if T==888:
@@ -20,4 +20,4 @@ def v():
 	FF.clear()
 Time[720]=v
 Time[730]=lambda:F(Complement(120),Complement(240))
-for v in range(180,720,180):Time[600+v]=lambda v=v:F(Laser(2,v>>1,0,pi12))
+Time[740]=lambda v=v:F(Laser(2,180,512,pi32))
