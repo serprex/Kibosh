@@ -403,14 +403,14 @@ def draw(t):
 		except:raise SystemExit
 		if r&0xF0==0xA0:
 			if r&8:
-				d=((Hi().y-Y0)**2+(Hi().x-X0)**2)**.5
-				if d:N+=[(Hi().x-X0)*12/d,(Hi().y-Y0)*12/d,64,X0,Y0],
+				s=((Hi().y-Y0)**2+(Hi().x-X0)**2)**.5
+				if s:N+=[(Hi().x-X0)*12/s,(Hi().y-Y0)*12/s,64,X0,Y0],
 			getattr(FF.pop(r&7|ord(recv(1))<<3,None),"die",int)()
 		elif r&0xF0==0xC0:M[ord(recv(1))].add(r&15)
 		elif r==0xE3:
 			E=0
-			d=((Hi().y-Y0)**2+(Hi().x-X0)**2)**.5
-			if d:N+=[(Hi().x-X0)*12/d,(Hi().y-Y0)*12/d,64,X0,Y0],
+			s=((Hi().y-Y0)**2+(Hi().x-X0)**2)**.5
+			if s:N+=[(Hi().x-X0)*12/s,(Hi().y-Y0)*12/s,64,X0,Y0],
 		elif r==0xEE:miss(False)
 		elif r==0xEF:SYNC=1
 	send(b"\xEF")
@@ -452,22 +452,21 @@ def draw(t):
 	glColor4ub(0,0,0,0)
 	for a in pi63v:glVertex2f(X0+cos(a)*12.,Y0+sin(a)*12.)
 	glEnd()
-	d=[]
+	s=[]
 	a=[]
-	s=ND[Z0]
 	for b in reversed(B):
 		r=b[0]
 		x=b[1]=b[1]+b[3]
 		y=b[2]=b[2]+b[4]
-		if not(-12.<x<372. and -12.<y<524.) or s and r==s.p and (x-s.x)**2+(y-s.y)**2<400. and (s is N2 or not atch()):B.remove(b)
+		if not(-12.<x<372. and -12.<y<524.) or Z0 in (0.,1.) and r==ND[Z0].p and (x-ND[Z0].x)**2+(y-ND[Z0].y)**2<400. and (ND[Z0] is N2 or not atch()):B.remove(b)
 		elif Z0<=.5 and r!=N1.p and (x-X0)**2+(y-Y0)**2<49.:
 			miss()
 			break
 		else:
-			d+=tuple(RGB[r])*4+tuple(BWB[r])*4
+			s+=tuple(RGB[r])*4+tuple(BWB[r])*4
 			a+=x+7.,y,x,y+7.,x-7.,y,x,y-7.,x+4.,y,x,y+4.,x-4.,y,x,y-4.
 	glBlendFunc(GL_SRC_ALPHA,0)
-	if a:graphics.draw(len(a)>>1,GL_QUADS,("v2f",a),("c3B",d))
+	if a:graphics.draw(len(a)>>1,GL_QUADS,("v2f",a),("c3B",s))
 	for r,a in [x for x in ((x,y()) for x,y in FF.items()) if x[1]]:
 		del FF[r]
 		if a is not send:
@@ -475,7 +474,7 @@ def draw(t):
 			Nap=0
 	Fd.difference_update([r for r in Fd if r()])
 	r=0
-	d=[0,512,0,504,E,504,E,504,0,512,E,512]
+	s=[0,512,0,504,E,504,E,504,0,512,E,512]
 	for a in N:
 		a[2]+=1
 		if not a[2]&63:
@@ -483,15 +482,14 @@ def draw(t):
 			continue
 		a[3]+=a[0]
 		a[4]+=a[1]
-		c=12
 		for b in range(min(12,a[2]&63)):
 			x=a[3]-a[0]*b-6.
 			y=a[4]-a[1]*b-6.
-			d+=x+c*ritz(2),y+c*ritz(2),x+c*ritz(2),y+c*ritz(2),x+c*ritz(2),y+c*ritz(2)
+			s+=x+12*ritz(2),y+12*ritz(2),x+12*ritz(2),y+12*ritz(2),x+12*ritz(2),y+12*ritz(2)
 	del N[:r]
 	glBlendFunc(GL_ONE_MINUS_DST_COLOR,0)
 	glColor3ubv(Wht)
-	graphics.draw(len(d)>>1,GL_TRIANGLES,("v2f",d))
+	graphics.draw(len(s)>>1,GL_TRIANGLES,("v2f",s))
 	T+=1
 	W.flip()
 clock.schedule_interval(draw,1/30-H/666)
