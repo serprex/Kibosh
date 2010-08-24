@@ -8,10 +8,7 @@ from select import select
 from itertools import chain,cycle
 from random import getrandbits as ritz
 from os.path import isfile
-from collections import defaultdict
-try:
-	range=xrange
-	from itertools import imap as map,izip as zip,ifilter as filter
+try:range=xrange
 except:pass
 for a in range(1,16):globals().update(("pi%X%X"%(a,b),pi*a/b) for b in range(1,16))
 pi63v=0,pi13,pi23,pi33,pi43,pi53,pi63
@@ -34,8 +31,8 @@ def miss(f=True):
 		hit2=30
 def sexy():
 	global Ee,sT
-	sT+=1
 	usend(b"%c%c%c%c%c"%(sT>>8,sT&255,N1.awds[0]|N1.awds[1]<<1|N1.awds[2]<<2|N1.awds[3]<<3|N1.x>>4&16|N1.y>>3&32|Ee<<6,N1.x&255,N1.y&255))
+	sT+=1
 	Ee=0
 def atch():
 	global E,Ee
@@ -72,7 +69,7 @@ X0=Y0=Z0=.5
 zT=sT=FC=Nap=T=Tlc=E=Ee=hit2=0
 life=3
 hit=(180,256),(180,256)
-M=defaultdict(set)
+M=[set() for x in range(256)]
 Time={}
 FF={}
 Tl=[]
@@ -85,8 +82,9 @@ def F(*x):
 		while FC in FF:FC=FC+1&2047
 		FF[FC]=x
 class Node:
-	def __init__(s,*x):
-		s.x,s.y,s.p=x
+	def __init__(s,x):
+		s.x,s.p=(120,0) if x else (240,1)
+		s.y=256
 		s.awds=[0,0,0,0]
 class Cannon:
 	die=lambda s:not Fd.add(Cannond(s))
@@ -246,7 +244,7 @@ class Complement:
 		for a in range(s.l):
 			ca=cos(s.d+pi21*a/s.l)*s.e
 			sa=sin(s.d+pi21*a/s.l)*s.e
-			if T&3 and T%7 and s.s<3:Bad([getattr(ND[1.-Z0],"p",2),s.x+ca*99.,s.y+sa*99.,ca*(7+H/4),sa*(7+H/4)])
+			if T&3 and T%7 and s.s<3:Bad([(NN[1-int(Z0)].p if Z0 in (0.,1.) else 2),s.x+ca*99.,s.y+sa*99.,ca*(7+H/4),sa*(7+H/4)])
 			elif not s.t:Bad([2,s.x+ca*99.,s.y+sa*99.,ca*(7+H/4),sa*(7+H/4)])
 			for a in range(9,99,3):glVertex2f(s.x+ca*a+ritz(3)-4,s.y+sa*a+ritz(3)-4)
 		glEnd()
@@ -354,14 +352,15 @@ udp.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
 usend=udp.send
 tcp=socket(AF_INET,SOCK_STREAM)
 tcp.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
-for a in filter(lambda x:x not in "#",chain(("::2000","g","Kikiki","0","U0"),(open("K.txt") if isfile("K.txt") else ()),__import__("sys").argv[1:])):
+for a in (x for x in chain(("::2000","g","Kikiki","0","U0","S0"),(open("K.txt") if isfile("K.txt") else ()),__import__("sys").argv[1:]) if x not in "#"):
 	if ":" in a:hopo=(a[:a.find(":")] or hopo[0] if a.find("::")==-1 else ""),int(a[a.rfind(":")+1:] or hopo[1])
+	elif a[0]=="S" and a[1] in "01":S=a[1]=="1"
 	elif a[0]=="U" and a[1:].isdigit():U=int(a[1:])
-	elif isfile(a):L=bytes(a)
-	elif "." in a:hopo=a,hopo[1]
+	elif a in "brg":N1,N2=NN=(Node(0),Node(1))[::1-((ritz(a=="g") or a=="b")<<1)]
 	elif a in "0123":H=max(min(int(a),3),0)
-	elif a in "brg":N1,N2=NN=(Node(120,256,0),Node(240,256,1))[::1-((ritz(a=="g") or a=="b")<<1)]
 	elif a.isdigit():hopo=hopo[0],int(a)
+	elif isfile(a) and len(a)<16:L=bytes(a)
+	elif "." in a:hopo=a,hopo[1]
 if hopo[0]:
 	for udp in tcp,udp:udp.connect(hopo)
 	if U:udp.bind(("",U))
@@ -370,35 +369,32 @@ if hopo[0]:
 	L=ord(tcp.recv(1))
 	if L>>7==N1.p:N1,N2=NN=N2,N1
 	H=L>>5&3
-	L=tcp.recv(L&63)
+	S=L>>4&1
+	L=tcp.recv(L&15)
 	tcp.send(b"%c"%isfile(L))
 	if not isfile(L):
-		ND=__import__("zlib").decompress(tcp.recv(8192))
-		if (raw_input(ND+b"\nExecute %s? yN "%L)[:1] or " ") in "yY":open(L,"w").write(ND)
+		send=__import__("zlib").decompress(tcp.recv(8192))
+		if (raw_input(send+b"\nExecute %s? yN "%L)[:1] or " ") in "yY":open(L,"w").write(send)
 else:
-	for ND in tcp,udp:ND.bind(hopo)
+	for udp in tcp,udp:udp.bind(hopo)
 	tcp.listen(1)
 	tcp=tcp.accept()[0]
 	udp.connect(udp.recvfrom(0)[1])
-	tcp.send(b"%c%s"%(N1.p<<7|H<<5|len(L),L))
+	tcp.send(b"%c%s"%(N1.p<<7|H<<5|S<<4|len(L),L))
 	if not ord(tcp.recv(1)):tcp.send(__import__("zlib").compress(open(L).read()))
 	while select((udp,),(),(),.1)[0]:udp.recv(0)
 recv=tcp.recv
 send=tcp.send
-ND=defaultdict(lambda:None,{0.:N1,1.:N2})
 execfile(L)
-T=1100
 def draw(t):
 	global T,Tl,Tlc,X0,Y0,Z0,hit,hit2,E,N,B,Bad,Nap,zT,SYNC
-	SYNC=0
 	W.clear()
 	if Tl:
 		Tlc+=1
-		r=set(FF.itervalues())
-		Tl=[a for a in Tl if a in r]
+		Tl=[a for a in Tl if a in FF.values()]
 	elif T-Tlc in Time:Time[T-Tlc]()
 	Back(T,1-Z0 if N1.p else Z0)
-	while select((tcp,),(),(),0)[0] or not SYNC:
+	while S or select((tcp,),(),(),0)[0]:
 		try:r=ord(recv(1))
 		except:raise SystemExit
 		if r&0xF0==0xA0:
@@ -412,10 +408,9 @@ def draw(t):
 			s=((Hi().y-Y0)**2+(Hi().x-X0)**2)**.5
 			if s:N+=[(Hi().x-X0)*12/s,(Hi().y-Y0)*12/s,64,X0,Y0],
 		elif r==0xEE:miss(False)
-		elif r==0xEF:SYNC=1
-	send(b"\xEF")
+		elif r==0xEF:break
 	while select((udp,),(),(),0)[0]:
-		b,c,a,x,y=map(ord,udp.recv(5))
+		b,c,a,x,y=(ord(x) for x in udp.recv(5))
 		c|=b<<8
 		if c!=zT:
 			E+=(a>>6)*30
@@ -458,7 +453,7 @@ def draw(t):
 		r=b[0]
 		x=b[1]=b[1]+b[3]
 		y=b[2]=b[2]+b[4]
-		if not(-12.<x<372. and -12.<y<524.) or Z0 in (0.,1.) and r==ND[Z0].p and (x-ND[Z0].x)**2+(y-ND[Z0].y)**2<400. and (ND[Z0] is N2 or not atch()):B.remove(b)
+		if not(-12.<x<372. and -12.<y<524.) or Z0 in (0.,1.) and r==NN[int(Z0)].p and (x-NN[int(Z0)].x)**2+(y-NN[int(Z0)].y)**2<400. and (Z0==1. or not atch()):B.remove(b)
 		elif Z0<=.5 and r!=N1.p and (x-X0)**2+(y-Y0)**2<49.:
 			miss()
 			break
@@ -472,6 +467,7 @@ def draw(t):
 		if a is not send:
 			send(b"%c%c"%(0xA0|Nap<<3|r&7,r>>3))
 			Nap=0
+	if S:send("\xEF")
 	Fd.difference_update([r for r in Fd if r()])
 	r=0
 	s=[0,512,0,504,E,504,E,504,0,512,E,512]
@@ -492,7 +488,8 @@ def draw(t):
 	graphics.draw(len(s)>>1,GL_TRIANGLES,("v2f",s))
 	T+=1
 	W.flip()
-clock.schedule_interval(draw,1/30-H/666)
+clock.schedule_interval(draw,1/30)
 W.set_visible(True)
-send(b"\xEF")
+if S:send("\xEF")
+else:recv(send(b" "))
 app.run()

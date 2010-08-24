@@ -14,7 +14,7 @@ def v():
 	if T==888:
 		F(CannonCannon(240))
 		return send
-v.NoN=Time[720]=lambda v=v:F(CannonCannon(120),v)
+Time[720]=lambda v=v:F(CannonCannon(120),v)
 def v():
 	for b in FF.itervalues():b.die()
 	FF.clear()
